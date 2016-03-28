@@ -26,16 +26,14 @@ type clientResponse struct {
 // clientMessageResponse uses strong type for body instead of interface{} - helps to
 // reduce allocations when marshaling.
 type clientMessageResponse struct {
-	clientResponse
-	Body Message `json:"body"`
+	Method string  `json:"method"`
+	Body   Message `json:"body"`
 }
 
 // newClientMessage returns initialized client message response.
 func newClientMessage() *clientMessageResponse {
 	return &clientMessageResponse{
-		clientResponse: clientResponse{
-			Method: "message",
-		},
+		Method: "message",
 	}
 }
 
