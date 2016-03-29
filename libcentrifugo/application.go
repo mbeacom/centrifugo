@@ -11,6 +11,7 @@ import (
 	"github.com/centrifugal/centrifugo/Godeps/_workspace/src/github.com/FZambia/go-logger"
 	"github.com/centrifugal/centrifugo/Godeps/_workspace/src/github.com/gorilla/securecookie"
 	"github.com/centrifugal/centrifugo/Godeps/_workspace/src/github.com/satori/go.uuid"
+	"github.com/mailru/easyjson"
 )
 
 // Application is a heart of Centrifugo – it internally manages client and admin hubs,
@@ -421,7 +422,7 @@ func (app *Application) pubClient(ch Channel, chOpts ChannelOptions, data []byte
 	resp := newClientMessage()
 	resp.Body = message
 
-	byteMessage, err := json.Marshal(resp)
+	byteMessage, err := easyjson.Marshal(resp)
 	if err != nil {
 		return makeErrChan(err)
 	}
