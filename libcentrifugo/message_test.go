@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/centrifugal/centrifugo/Godeps/_workspace/src/github.com/stretchr/testify/assert"
+	"github.com/mailru/easyjson"
 )
 
 func TestMessage(t *testing.T) {
@@ -27,6 +28,19 @@ func BenchmarkMsgMarshal(b *testing.B) {
 		resp := newClientMessage()
 		resp.Body = msg
 		_, err := json.Marshal(resp)
+		if err != nil {
+			panic(err)
+		}
+	}
+}
+
+func BenchmarkMsgMarshalEasy(b *testing.B) {
+	msg := newMessage(Channel("test"), []byte("{}"), "", nil)
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		resp := newClientMessage()
+		resp.Body = msg
+		_, err := easyjson.Marshal(resp)
 		if err != nil {
 			panic(err)
 		}
