@@ -23,19 +23,18 @@ type clientResponse struct {
 	clientError
 }
 
-// clientMessageResponse uses strong type for body instead of interface{} - helps to
+// ClientMessageResponse uses strong type for body instead of interface{} - helps to
 // reduce allocations when marshaling.
-type clientMessageResponse struct {
-	clientResponse
-	Body Message `json:"body"`
+//easyjson:json
+type ClientMessageResponse struct {
+	Method string  `json:"method"`
+	Body   Message `json:"body"`
 }
 
 // newClientMessage returns initialized client message response.
-func newClientMessage() *clientMessageResponse {
-	return &clientMessageResponse{
-		clientResponse: clientResponse{
-			Method: "message",
-		},
+func newClientMessage() *ClientMessageResponse {
+	return &ClientMessageResponse{
+		Method: "message",
 	}
 }
 
