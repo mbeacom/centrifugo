@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 
 	"github.com/centrifugal/centrifugo/Godeps/_workspace/src/github.com/FZambia/go-logger"
+	"github.com/mailru/easyjson"
 )
 
 // apiCmd builds API command and dispatches it into correct handler method.
@@ -18,7 +19,7 @@ func (app *Application) apiCmd(command apiCommand) (*response, error) {
 	switch method {
 	case "publish":
 		var cmd publishAPICommand
-		err = json.Unmarshal(params, &cmd)
+		err = easyjson.Unmarshal(params, &cmd)
 		if err != nil {
 			logger.ERROR.Println(err)
 			return nil, ErrInvalidMessage
@@ -26,7 +27,7 @@ func (app *Application) apiCmd(command apiCommand) (*response, error) {
 		resp, err = app.publishCmd(&cmd)
 	case "broadcast":
 		var cmd broadcastAPICommand
-		err = json.Unmarshal(params, &cmd)
+		err = easyjson.Unmarshal(params, &cmd)
 		if err != nil {
 			logger.ERROR.Println(err)
 			return nil, ErrInvalidMessage

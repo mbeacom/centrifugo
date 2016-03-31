@@ -12,6 +12,8 @@ import (
 	"github.com/centrifugal/centrifugo/Godeps/_workspace/src/github.com/gorilla/websocket"
 	"github.com/centrifugal/centrifugo/Godeps/_workspace/src/gopkg.in/igm/sockjs-go.v2/sockjs"
 	"github.com/centrifugal/centrifugo/libcentrifugo/auth"
+	"github.com/mailru/easyjson"
+	"github.com/mailru/easyjson/jlexer"
 )
 
 // HandlerFlag is a bit mask of handlers that must be enabled in mux.
@@ -300,17 +302,30 @@ func cmdFromRequestMsg(msg []byte) ([]apiCommand, error) {
 	case objectJSONPrefix:
 		// single command request
 		var command apiCommand
-		err := json.Unmarshal(msg, &command)
+		err := easyjson.Unmarshal(msg, &command)
 		if err != nil {
 			return nil, err
 		}
 		commands = append(commands, command)
 	case arrayJSONPrefix:
-		// array of commands received
-		err := json.Unmarshal(msg, &commands)
-		if err != nil {
-			return nil, err
+		/*
+			err := json.Unmarshal(msg, &commands)
+			if err != nil {
+				return nil, err
+			}
+		*/
+
+		in := &jlexer.Lexer{Data: msg}
+		in.Delim('[')
+		for !in.IsDelim(']') {
+			var v1 apiCommand
+			(v1).UnmarshalEasyJSON(in)
+			commands = append(commands, v1)
+			in.WantComma()
 		}
+		in.Delim(']')
+		return commands, in.Error()
+
 	default:
 		return nil, ErrInvalidMessage
 	}
