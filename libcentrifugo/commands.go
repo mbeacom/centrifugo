@@ -29,6 +29,10 @@ type apiCommand struct {
 	Params json.RawMessage `json:"params"`
 }
 
+type redisAPIRequest struct {
+	Data []apiCommand `json:"data"`
+}
+
 type adminCommand struct {
 	UID    string          `json:"uid"`
 	Method string          `json:"method"`

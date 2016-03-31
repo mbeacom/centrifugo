@@ -1,8 +1,6 @@
 package libcentrifugo
 
 import (
-	"encoding/json"
-
 	"github.com/centrifugal/centrifugo/Godeps/_workspace/src/github.com/FZambia/go-logger"
 	"github.com/mailru/easyjson"
 )
@@ -35,7 +33,7 @@ func (app *Application) apiCmd(command apiCommand) (*response, error) {
 		resp, err = app.broadcastCmd(&cmd)
 	case "unsubscribe":
 		var cmd unsubscribeAPICommand
-		err = json.Unmarshal(params, &cmd)
+		err = easyjson.Unmarshal(params, &cmd)
 		if err != nil {
 			logger.ERROR.Println(err)
 			return nil, ErrInvalidMessage
@@ -43,7 +41,7 @@ func (app *Application) apiCmd(command apiCommand) (*response, error) {
 		resp, err = app.unsubcribeCmd(&cmd)
 	case "disconnect":
 		var cmd disconnectAPICommand
-		err = json.Unmarshal(params, &cmd)
+		err = easyjson.Unmarshal(params, &cmd)
 		if err != nil {
 			logger.ERROR.Println(err)
 			return nil, ErrInvalidMessage
@@ -51,7 +49,7 @@ func (app *Application) apiCmd(command apiCommand) (*response, error) {
 		resp, err = app.disconnectCmd(&cmd)
 	case "presence":
 		var cmd presenceAPICommand
-		err = json.Unmarshal(params, &cmd)
+		err = easyjson.Unmarshal(params, &cmd)
 		if err != nil {
 			logger.ERROR.Println(err)
 			return nil, ErrInvalidMessage
@@ -59,7 +57,7 @@ func (app *Application) apiCmd(command apiCommand) (*response, error) {
 		resp, err = app.presenceCmd(&cmd)
 	case "history":
 		var cmd historyAPICommand
-		err = json.Unmarshal(params, &cmd)
+		err = easyjson.Unmarshal(params, &cmd)
 		if err != nil {
 			logger.ERROR.Println(err)
 			return nil, ErrInvalidMessage

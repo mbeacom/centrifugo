@@ -1441,6 +1441,73 @@ func (v *adminCommand) UnmarshalJSON(data []byte) error {
 func (v *adminCommand) UnmarshalEasyJSON(l *jlexer.Lexer) {
 	easyjson_decode_github_com_centrifugal_centrifugo_libcentrifugo_adminCommand(l, v)
 }
+func easyjson_decode_github_com_centrifugal_centrifugo_libcentrifugo_redisAPIRequest(in *jlexer.Lexer, out *redisAPIRequest) {
+	in.Delim('{')
+	for !in.IsDelim('}') {
+		key := in.UnsafeString()
+		in.WantColon()
+		if in.IsNull() {
+			in.Skip()
+			in.WantComma()
+			continue
+		}
+		switch key {
+		case "data":
+			in.Delim('[')
+			if !in.IsDelim(']') {
+				out.Data = make([]apiCommand, 0, 1)
+			} else {
+				out.Data = nil
+			}
+			for !in.IsDelim(']') {
+				var v4 apiCommand
+				(v4).UnmarshalEasyJSON(in)
+				out.Data = append(out.Data, v4)
+				in.WantComma()
+			}
+			in.Delim(']')
+		default:
+			in.SkipRecursive()
+		}
+		in.WantComma()
+	}
+	in.Delim('}')
+}
+func easyjson_encode_github_com_centrifugal_centrifugo_libcentrifugo_redisAPIRequest(out *jwriter.Writer, in *redisAPIRequest) {
+	out.RawByte('{')
+	first := true
+	_ = first
+	if !first {
+		out.RawByte(',')
+	}
+	first = false
+	out.RawString("\"data\":")
+	out.RawByte('[')
+	for v5, v6 := range in.Data {
+		if v5 > 0 {
+			out.RawByte(',')
+		}
+		(v6).MarshalEasyJSON(out)
+	}
+	out.RawByte(']')
+	out.RawByte('}')
+}
+func (v *redisAPIRequest) MarshalJSON() ([]byte, error) {
+	w := jwriter.Writer{}
+	easyjson_encode_github_com_centrifugal_centrifugo_libcentrifugo_redisAPIRequest(&w, v)
+	return w.Buffer.BuildBytes(), w.Error
+}
+func (v *redisAPIRequest) MarshalEasyJSON(w *jwriter.Writer) {
+	easyjson_encode_github_com_centrifugal_centrifugo_libcentrifugo_redisAPIRequest(w, v)
+}
+func (v *redisAPIRequest) UnmarshalJSON(data []byte) error {
+	r := jlexer.Lexer{Data: data}
+	easyjson_decode_github_com_centrifugal_centrifugo_libcentrifugo_redisAPIRequest(&r, v)
+	return r.Error()
+}
+func (v *redisAPIRequest) UnmarshalEasyJSON(l *jlexer.Lexer) {
+	easyjson_decode_github_com_centrifugal_centrifugo_libcentrifugo_redisAPIRequest(l, v)
+}
 func easyjson_decode_github_com_centrifugal_centrifugo_libcentrifugo_apiCommand(in *jlexer.Lexer, out *apiCommand) {
 	in.Delim('{')
 	for !in.IsDelim('}') {
