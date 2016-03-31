@@ -125,7 +125,7 @@ func easyjson_decode_github_com_centrifugal_centrifugo_libcentrifugo_disconnectC
 			continue
 		}
 		switch key {
-		case "User":
+		case "user":
 			out.User = UserID(in.String())
 		default:
 			in.SkipRecursive()
@@ -142,7 +142,7 @@ func easyjson_encode_github_com_centrifugal_centrifugo_libcentrifugo_disconnectC
 		out.RawByte(',')
 	}
 	first = false
-	out.RawString("\"User\":")
+	out.RawString("\"user\":")
 	out.String(string(in.User))
 	out.RawByte('}')
 }
@@ -175,7 +175,7 @@ func easyjson_decode_github_com_centrifugal_centrifugo_libcentrifugo_unsubscribe
 		switch key {
 		case "User":
 			out.User = UserID(in.String())
-		case "Channel":
+		case "channel":
 			out.Channel = Channel(in.String())
 		default:
 			in.SkipRecursive()
@@ -198,7 +198,7 @@ func easyjson_encode_github_com_centrifugal_centrifugo_libcentrifugo_unsubscribe
 		out.RawByte(',')
 	}
 	first = false
-	out.RawString("\"Channel\":")
+	out.RawString("\"channel\":")
 	out.String(string(in.Channel))
 	out.RawByte('}')
 }
@@ -229,7 +229,7 @@ func easyjson_decode_github_com_centrifugal_centrifugo_libcentrifugo_pingControl
 			continue
 		}
 		switch key {
-		case "Info":
+		case "info":
 			easyjson_decode_github_com_centrifugal_centrifugo_libcentrifugo_NodeInfo(in, &out.Info)
 		default:
 			in.SkipRecursive()
@@ -246,7 +246,7 @@ func easyjson_encode_github_com_centrifugal_centrifugo_libcentrifugo_pingControl
 		out.RawByte(',')
 	}
 	first = false
-	out.RawString("\"Info\":")
+	out.RawString("\"info\":")
 	easyjson_encode_github_com_centrifugal_centrifugo_libcentrifugo_NodeInfo(out, &in.Info)
 	out.RawByte('}')
 }
@@ -477,7 +477,7 @@ func easyjson_decode_github_com_centrifugal_centrifugo_libcentrifugo_historyAPIC
 			continue
 		}
 		switch key {
-		case "Channel":
+		case "channel":
 			out.Channel = Channel(in.String())
 		default:
 			in.SkipRecursive()
@@ -494,7 +494,7 @@ func easyjson_encode_github_com_centrifugal_centrifugo_libcentrifugo_historyAPIC
 		out.RawByte(',')
 	}
 	first = false
-	out.RawString("\"Channel\":")
+	out.RawString("\"channel\":")
 	out.String(string(in.Channel))
 	out.RawByte('}')
 }
@@ -525,7 +525,7 @@ func easyjson_decode_github_com_centrifugal_centrifugo_libcentrifugo_presenceAPI
 			continue
 		}
 		switch key {
-		case "Channel":
+		case "channel":
 			out.Channel = Channel(in.String())
 		default:
 			in.SkipRecursive()
@@ -542,7 +542,7 @@ func easyjson_encode_github_com_centrifugal_centrifugo_libcentrifugo_presenceAPI
 		out.RawByte(',')
 	}
 	first = false
-	out.RawString("\"Channel\":")
+	out.RawString("\"channel\":")
 	out.String(string(in.Channel))
 	out.RawByte('}')
 }
@@ -573,7 +573,7 @@ func easyjson_decode_github_com_centrifugal_centrifugo_libcentrifugo_disconnectA
 			continue
 		}
 		switch key {
-		case "User":
+		case "user":
 			out.User = UserID(in.String())
 		default:
 			in.SkipRecursive()
@@ -590,7 +590,7 @@ func easyjson_encode_github_com_centrifugal_centrifugo_libcentrifugo_disconnectA
 		out.RawByte(',')
 	}
 	first = false
-	out.RawString("\"User\":")
+	out.RawString("\"user\":")
 	out.String(string(in.User))
 	out.RawByte('}')
 }
@@ -621,9 +621,9 @@ func easyjson_decode_github_com_centrifugal_centrifugo_libcentrifugo_unsubscribe
 			continue
 		}
 		switch key {
-		case "Channel":
+		case "channel":
 			out.Channel = Channel(in.String())
-		case "User":
+		case "user":
 			out.User = UserID(in.String())
 		default:
 			in.SkipRecursive()
@@ -640,13 +640,13 @@ func easyjson_encode_github_com_centrifugal_centrifugo_libcentrifugo_unsubscribe
 		out.RawByte(',')
 	}
 	first = false
-	out.RawString("\"Channel\":")
+	out.RawString("\"channel\":")
 	out.String(string(in.Channel))
 	if !first {
 		out.RawByte(',')
 	}
 	first = false
-	out.RawString("\"User\":")
+	out.RawString("\"user\":")
 	out.String(string(in.User))
 	out.RawByte('}')
 }
@@ -677,7 +677,7 @@ func easyjson_decode_github_com_centrifugal_centrifugo_libcentrifugo_broadcastAP
 			continue
 		}
 		switch key {
-		case "Channels":
+		case "channels":
 			in.Delim('[')
 			if !in.IsDelim(']') {
 				out.Channels = make([]Channel, 0, 4)
@@ -691,11 +691,11 @@ func easyjson_decode_github_com_centrifugal_centrifugo_libcentrifugo_broadcastAP
 				in.WantComma()
 			}
 			in.Delim(']')
-		case "Data":
+		case "data":
 			if data := in.Raw(); in.Ok() {
 				in.AddError((out.Data).UnmarshalJSON(data))
 			}
-		case "Client":
+		case "client":
 			out.Client = ConnID(in.String())
 		default:
 			in.SkipRecursive()
@@ -712,7 +712,7 @@ func easyjson_encode_github_com_centrifugal_centrifugo_libcentrifugo_broadcastAP
 		out.RawByte(',')
 	}
 	first = false
-	out.RawString("\"Channels\":")
+	out.RawString("\"channels\":")
 	out.RawByte('[')
 	for v2, v3 := range in.Channels {
 		if v2 > 0 {
@@ -725,13 +725,13 @@ func easyjson_encode_github_com_centrifugal_centrifugo_libcentrifugo_broadcastAP
 		out.RawByte(',')
 	}
 	first = false
-	out.RawString("\"Data\":")
+	out.RawString("\"data\":")
 	out.Raw((in.Data).MarshalJSON())
 	if !first {
 		out.RawByte(',')
 	}
 	first = false
-	out.RawString("\"Client\":")
+	out.RawString("\"client\":")
 	out.String(string(in.Client))
 	out.RawByte('}')
 }
@@ -762,11 +762,11 @@ func easyjson_decode_github_com_centrifugal_centrifugo_libcentrifugo_publishAPIC
 			continue
 		}
 		switch key {
-		case "Channel":
+		case "channel":
 			out.Channel = Channel(in.String())
-		case "Client":
+		case "client":
 			out.Client = ConnID(in.String())
-		case "Data":
+		case "data":
 			if data := in.Raw(); in.Ok() {
 				in.AddError((out.Data).UnmarshalJSON(data))
 			}
@@ -785,19 +785,19 @@ func easyjson_encode_github_com_centrifugal_centrifugo_libcentrifugo_publishAPIC
 		out.RawByte(',')
 	}
 	first = false
-	out.RawString("\"Channel\":")
+	out.RawString("\"channel\":")
 	out.String(string(in.Channel))
 	if !first {
 		out.RawByte(',')
 	}
 	first = false
-	out.RawString("\"Client\":")
+	out.RawString("\"client\":")
 	out.String(string(in.Client))
 	if !first {
 		out.RawByte(',')
 	}
 	first = false
-	out.RawString("\"Data\":")
+	out.RawString("\"data\":")
 	out.Raw((in.Data).MarshalJSON())
 	out.RawByte('}')
 }
@@ -828,7 +828,7 @@ func easyjson_decode_github_com_centrifugal_centrifugo_libcentrifugo_PingClientC
 			continue
 		}
 		switch key {
-		case "Data":
+		case "data":
 			out.Data = string(in.String())
 		default:
 			in.SkipRecursive()
@@ -845,7 +845,7 @@ func easyjson_encode_github_com_centrifugal_centrifugo_libcentrifugo_PingClientC
 		out.RawByte(',')
 	}
 	first = false
-	out.RawString("\"Data\":")
+	out.RawString("\"data\":")
 	out.String(string(in.Data))
 	out.RawByte('}')
 }
@@ -1440,6 +1440,73 @@ func (v *adminCommand) UnmarshalJSON(data []byte) error {
 }
 func (v *adminCommand) UnmarshalEasyJSON(l *jlexer.Lexer) {
 	easyjson_decode_github_com_centrifugal_centrifugo_libcentrifugo_adminCommand(l, v)
+}
+func easyjson_decode_github_com_centrifugal_centrifugo_libcentrifugo_redisAPIRequest(in *jlexer.Lexer, out *redisAPIRequest) {
+	in.Delim('{')
+	for !in.IsDelim('}') {
+		key := in.UnsafeString()
+		in.WantColon()
+		if in.IsNull() {
+			in.Skip()
+			in.WantComma()
+			continue
+		}
+		switch key {
+		case "data":
+			in.Delim('[')
+			if !in.IsDelim(']') {
+				out.Data = make([]apiCommand, 0, 1)
+			} else {
+				out.Data = nil
+			}
+			for !in.IsDelim(']') {
+				var v4 apiCommand
+				(v4).UnmarshalEasyJSON(in)
+				out.Data = append(out.Data, v4)
+				in.WantComma()
+			}
+			in.Delim(']')
+		default:
+			in.SkipRecursive()
+		}
+		in.WantComma()
+	}
+	in.Delim('}')
+}
+func easyjson_encode_github_com_centrifugal_centrifugo_libcentrifugo_redisAPIRequest(out *jwriter.Writer, in *redisAPIRequest) {
+	out.RawByte('{')
+	first := true
+	_ = first
+	if !first {
+		out.RawByte(',')
+	}
+	first = false
+	out.RawString("\"data\":")
+	out.RawByte('[')
+	for v5, v6 := range in.Data {
+		if v5 > 0 {
+			out.RawByte(',')
+		}
+		(v6).MarshalEasyJSON(out)
+	}
+	out.RawByte(']')
+	out.RawByte('}')
+}
+func (v *redisAPIRequest) MarshalJSON() ([]byte, error) {
+	w := jwriter.Writer{}
+	easyjson_encode_github_com_centrifugal_centrifugo_libcentrifugo_redisAPIRequest(&w, v)
+	return w.Buffer.BuildBytes(), w.Error
+}
+func (v *redisAPIRequest) MarshalEasyJSON(w *jwriter.Writer) {
+	easyjson_encode_github_com_centrifugal_centrifugo_libcentrifugo_redisAPIRequest(w, v)
+}
+func (v *redisAPIRequest) UnmarshalJSON(data []byte) error {
+	r := jlexer.Lexer{Data: data}
+	easyjson_decode_github_com_centrifugal_centrifugo_libcentrifugo_redisAPIRequest(&r, v)
+	return r.Error()
+}
+func (v *redisAPIRequest) UnmarshalEasyJSON(l *jlexer.Lexer) {
+	easyjson_decode_github_com_centrifugal_centrifugo_libcentrifugo_redisAPIRequest(l, v)
 }
 func easyjson_decode_github_com_centrifugal_centrifugo_libcentrifugo_apiCommand(in *jlexer.Lexer, out *apiCommand) {
 	in.Delim('{')

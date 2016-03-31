@@ -13,6 +13,7 @@ import (
 	"github.com/centrifugal/centrifugo/Godeps/_workspace/src/github.com/FZambia/go-logger"
 	"github.com/centrifugal/centrifugo/Godeps/_workspace/src/github.com/FZambia/go-sentinel"
 	"github.com/centrifugal/centrifugo/Godeps/_workspace/src/github.com/garyburd/redigo/redis"
+	"github.com/mailru/easyjson"
 )
 
 const (
@@ -382,10 +383,6 @@ func (e *RedisEngine) run() error {
 	return nil
 }
 
-type redisAPIRequest struct {
-	Data []apiCommand
-}
-
 // runForever simple keeps another function running indefinitely
 // the reason this loop is not inside the function itself is so that defer
 // can be used to cleanup nicely (defers only run at function return not end of block scope)
@@ -453,7 +450,7 @@ func (e *RedisEngine) runAPI() {
 						return
 					}
 					var req redisAPIRequest
-					err := json.Unmarshal(body, &req)
+					err := easyjson.Unmarshal(body, &req)
 					if err != nil {
 						logger.ERROR.Println(err)
 						continue
