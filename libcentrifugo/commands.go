@@ -151,7 +151,7 @@ type pingControlCommand struct {
 // node unsubscribes user from channel and then send this control command so other
 // nodes could unsubscribe user too.
 type unsubscribeControlCommand struct {
-	User    UserID
+	User    UserID  `json:"user"`
 	Channel Channel `json:"channel"`
 }
 

@@ -173,7 +173,7 @@ func easyjson_decode_github_com_centrifugal_centrifugo_libcentrifugo_unsubscribe
 			continue
 		}
 		switch key {
-		case "User":
+		case "user":
 			out.User = UserID(in.String())
 		case "channel":
 			out.Channel = Channel(in.String())
@@ -192,7 +192,7 @@ func easyjson_encode_github_com_centrifugal_centrifugo_libcentrifugo_unsubscribe
 		out.RawByte(',')
 	}
 	first = false
-	out.RawString("\"User\":")
+	out.RawString("\"user\":")
 	out.String(string(in.User))
 	if !first {
 		out.RawByte(',')

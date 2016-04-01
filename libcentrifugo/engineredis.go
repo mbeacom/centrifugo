@@ -716,7 +716,7 @@ func (e *RedisEngine) runPublishPipeline() {
 func (e *RedisEngine) publish(chID ChannelID, message []byte, opts *publishOpts) <-chan error {
 
 	if opts != nil && opts.HistorySize > 0 && opts.HistoryLifetime > 0 {
-		messageJSON, err := json.Marshal(opts.Message)
+		messageJSON, err := easyjson.Marshal(&opts.Message)
 		if err != nil {
 			ch := make(chan error, 1)
 			ch <- err
