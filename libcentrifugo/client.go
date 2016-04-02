@@ -2,6 +2,7 @@ package libcentrifugo
 
 import (
 	"encoding/json"
+	"errors"
 	"strconv"
 	"sync"
 	"time"
@@ -10,6 +11,8 @@ import (
 	"github.com/centrifugal/centrifugo/Godeps/_workspace/src/github.com/satori/go.uuid"
 	"github.com/centrifugal/centrifugo/libcentrifugo/auth"
 	"github.com/centrifugal/centrifugo/libcentrifugo/bytequeue"
+	"github.com/mailru/easyjson"
+	"github.com/mailru/easyjson/jlexer"
 )
 
 const (
@@ -307,19 +310,33 @@ func cmdFromClientMsg(msgBytes []byte) ([]clientCommand, error) {
 	case objectJSONPrefix:
 		// single command request
 		var command clientCommand
-		err := json.Unmarshal(msgBytes, &command)
+		err := easyjson.Unmarshal(msgBytes, &command)
 		if err != nil {
 			return nil, err
 		}
 		commands = append(commands, command)
+		return commands, nil
 	case arrayJSONPrefix:
 		// array of commands received
-		err := json.Unmarshal(msgBytes, &commands)
-		if err != nil {
-			return nil, err
+		/*
+			err := json.Unmarshal(msgBytes, &commands)
+			if err != nil {
+				return nil, err
+			}
+		*/
+		in := &jlexer.Lexer{Data: msgBytes}
+		in.Delim('[')
+		for !in.IsDelim(']') {
+			var v1 clientCommand
+			(v1).UnmarshalEasyJSON(in)
+			commands = append(commands, v1)
+			in.WantComma()
 		}
+		in.Delim(']')
+		return commands, in.Error()
+	default:
+		return nil, errors.New("object or array expected in client request")
 	}
-	return commands, nil
 }
 
 func (c *client) message(msg []byte) error {

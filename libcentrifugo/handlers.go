@@ -2,6 +2,7 @@ package libcentrifugo
 
 import (
 	"encoding/json"
+	"errors"
 	"io/ioutil"
 	"net/http"
 	"net/http/pprof"
@@ -307,6 +308,7 @@ func cmdFromRequestMsg(msg []byte) ([]apiCommand, error) {
 			return nil, err
 		}
 		commands = append(commands, command)
+		return commands, nil
 	case arrayJSONPrefix:
 		/*
 			err := json.Unmarshal(msg, &commands)
@@ -314,7 +316,6 @@ func cmdFromRequestMsg(msg []byte) ([]apiCommand, error) {
 				return nil, err
 			}
 		*/
-
 		in := &jlexer.Lexer{Data: msg}
 		in.Delim('[')
 		for !in.IsDelim(']') {
@@ -325,11 +326,9 @@ func cmdFromRequestMsg(msg []byte) ([]apiCommand, error) {
 		}
 		in.Delim(']')
 		return commands, in.Error()
-
 	default:
-		return nil, ErrInvalidMessage
+		return nil, errors.New("object or array expected in client request")
 	}
-	return commands, nil
 }
 
 // APIHandler is responsible for receiving API commands over HTTP.
