@@ -318,12 +318,6 @@ func cmdFromClientMsg(msgBytes []byte) ([]clientCommand, error) {
 		return commands, nil
 	case arrayJSONPrefix:
 		// array of commands received
-		/*
-			err := json.Unmarshal(msgBytes, &commands)
-			if err != nil {
-				return nil, err
-			}
-		*/
 		in := &jlexer.Lexer{Data: msgBytes}
 		in.Delim('[')
 		for !in.IsDelim(']') {

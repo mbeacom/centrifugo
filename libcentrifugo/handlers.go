@@ -310,12 +310,7 @@ func cmdFromRequestMsg(msg []byte) ([]apiCommand, error) {
 		commands = append(commands, command)
 		return commands, nil
 	case arrayJSONPrefix:
-		/*
-			err := json.Unmarshal(msg, &commands)
-			if err != nil {
-				return nil, err
-			}
-		*/
+		// array of commands received
 		in := &jlexer.Lexer{Data: msg}
 		in.Delim('[')
 		for !in.IsDelim(']') {
@@ -327,7 +322,7 @@ func cmdFromRequestMsg(msg []byte) ([]apiCommand, error) {
 		in.Delim(']')
 		return commands, in.Error()
 	default:
-		return nil, errors.New("object or array expected in client request")
+		return nil, errors.New("object or array expected in API request")
 	}
 }
 
