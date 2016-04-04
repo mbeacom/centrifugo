@@ -490,7 +490,7 @@ func (app *Application) pubPing() error {
 		logger.ERROR.Println(err)
 	}
 
-	cmdBytes, err := json.Marshal(cmd)
+	cmdBytes, err := easyjson.Marshal(cmd)
 	if err != nil {
 		return err
 	}
@@ -507,7 +507,7 @@ func (app *Application) pubUnsubscribe(user UserID, ch Channel) error {
 		Channel: ch,
 	}
 
-	cmdBytes, err := json.Marshal(cmd)
+	cmdBytes, err := easyjson.Marshal(cmd)
 	if err != nil {
 		return err
 	}
@@ -523,7 +523,7 @@ func (app *Application) pubDisconnect(user UserID) error {
 		User: user,
 	}
 
-	cmdBytes, err := json.Marshal(cmd)
+	cmdBytes, err := easyjson.Marshal(cmd)
 	if err != nil {
 		return err
 	}

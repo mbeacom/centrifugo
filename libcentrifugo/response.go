@@ -24,7 +24,8 @@ type clientResponse struct {
 }
 
 // ClientMessageResponse uses strong type for body instead of interface{} - helps to
-// reduce allocations when marshaling.
+// reduce allocations when marshaling. Also it does not have error -  because message
+// client response never contains it.
 //easyjson:json
 type ClientMessageResponse struct {
 	Method string  `json:"method"`
