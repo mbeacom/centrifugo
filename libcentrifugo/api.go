@@ -54,13 +54,6 @@ func (app *Application) apiCmd(command apiCommand) (*response, error) {
 		cmd.Client = ConnID(clientBytes)
 		cmd.Channel = Channel(channelBytes)
 
-		/*
-			err = easyjson.Unmarshal(params, &cmd)
-			if err != nil {
-				logger.ERROR.Println(err)
-				return nil, ErrInvalidMessage
-			}
-		*/
 		resp, err = app.publishCmd(&cmd)
 	case "broadcast":
 		var cmd broadcastAPICommand
@@ -74,7 +67,10 @@ func (app *Application) apiCmd(command apiCommand) (*response, error) {
 		}
 
 		// You can use `ArrayEach` helper to iterate items
-		jsonparser.ArrayEach(channelsBytes, func(value []byte, dataType jsonparser.ValueType, offset int, err error) {
+		jsonparser.ArrayEach(channelsBytes, func(value []byte, vType jsonparser.ValueType, offset int, err error) {
+			if vType != jsonparser.String {
+				return
+			}
 			channels = append(channels, Channel(value))
 		})
 
@@ -104,13 +100,6 @@ func (app *Application) apiCmd(command apiCommand) (*response, error) {
 		cmd.Client = ConnID(clientBytes)
 		cmd.Channels = channels
 
-		/*
-			err = easyjson.Unmarshal(params, &cmd)
-			if err != nil {
-				logger.ERROR.Println(err)
-				return nil, ErrInvalidMessage
-			}
-		*/
 		resp, err = app.broadcastCmd(&cmd)
 	case "unsubscribe":
 		var cmd unsubscribeAPICommand
