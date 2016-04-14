@@ -293,18 +293,25 @@ var (
 )
 
 func cmdFromObject(msg []byte) (apiCommand, error) {
-	uid, err := jsonparser.GetString(msg, "uid")
+	uid, vType, _, err := jsonparser.Get(msg, "uid")
 	if err != nil {
 		if err == jsonparser.KeyPathNotFoundError {
-			uid = ""
+			uid = []byte("")
 		} else {
 			return apiCommand{}, err
 		}
+	} else {
+		if vType != jsonparser.String {
+			return apiCommand{}, errors.New("uid must be string")
+		}
 	}
 
-	method, err := jsonparser.GetString(msg, "method")
+	method, vType, _, err := jsonparser.Get(msg, "method")
 	if err != nil {
 		return apiCommand{}, err
+	}
+	if vType != jsonparser.String {
+		return apiCommand{}, errors.New("method must be string")
 	}
 
 	params, _, _, err := jsonparser.Get(msg, "params")
@@ -313,8 +320,8 @@ func cmdFromObject(msg []byte) (apiCommand, error) {
 	}
 
 	return apiCommand{
-		UID:    uid,
-		Method: method,
+		UID:    string(uid),
+		Method: string(method),
 		Params: params,
 	}, nil
 }
@@ -341,6 +348,9 @@ func cmdFromRequestMsg(msg []byte) ([]apiCommand, error) {
 		// array of commands received
 		var parseErr error
 		err := jsonparser.ArrayEach(msg, func(value []byte, vType jsonparser.ValueType, offset int, err error) {
+			if parseErr != nil {
+				return
+			}
 			if vType != jsonparser.Object {
 				parseErr = errors.New("command must be object")
 				return
