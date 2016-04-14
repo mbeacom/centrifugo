@@ -292,6 +292,33 @@ var (
 	objectJSONPrefix byte = '{'
 )
 
+func cmdFromObject(msg []byte) (apiCommand, error) {
+	uid, err := jsonparser.GetString(msg, "uid")
+	if err != nil {
+		if err == jsonparser.KeyPathNotFoundError {
+			uid = ""
+		} else {
+			return apiCommand{}, err
+		}
+	}
+
+	method, err := jsonparser.GetString(msg, "method")
+	if err != nil {
+		return apiCommand{}, err
+	}
+
+	params, _, _, err := jsonparser.Get(msg, "params")
+	if err != nil {
+		return apiCommand{}, err
+	}
+
+	return apiCommand{
+		UID:    uid,
+		Method: method,
+		Params: params,
+	}, nil
+}
+
 func cmdFromRequestMsg(msg []byte) ([]apiCommand, error) {
 	var commands []apiCommand
 
@@ -304,63 +331,30 @@ func cmdFromRequestMsg(msg []byte) ([]apiCommand, error) {
 	switch firstByte {
 	case objectJSONPrefix:
 		// single command request
-		uid, err := jsonparser.GetString(msg, "uid")
-		if err != nil {
-			if err == jsonparser.KeyPathNotFoundError {
-				uid = ""
-			} else {
-				return commands, err
-			}
-		}
-
-		method, err := jsonparser.GetString(msg, "method")
+		command, err := cmdFromObject(msg)
 		if err != nil {
 			return commands, err
 		}
-
-		params, _, _, err := jsonparser.Get(msg, "params")
-		if err != nil {
-			return commands, err
-		}
-
-		commands = append(commands, apiCommand{
-			UID:    uid,
-			Method: method,
-			Params: params,
-		})
+		commands = append(commands, command)
 		return commands, nil
 	case arrayJSONPrefix:
 		// array of commands received
+		var parseErr error
 		err := jsonparser.ArrayEach(msg, func(value []byte, vType jsonparser.ValueType, offset int, err error) {
 			if vType != jsonparser.Object {
+				parseErr = errors.New("command must be object")
 				return
 			}
-
-			uid, err := jsonparser.GetString(value, "uid")
+			command, err := cmdFromObject(value)
 			if err != nil {
-				if err == jsonparser.KeyPathNotFoundError {
-					uid = ""
-				} else {
-					return
-				}
-			}
-
-			method, err := jsonparser.GetString(value, "method")
-			if err != nil {
+				parseErr = err
 				return
 			}
-
-			params, _, _, err := jsonparser.Get(value, "params")
-			if err != nil {
-				return
-			}
-
-			commands = append(commands, apiCommand{
-				UID:    uid,
-				Method: method,
-				Params: params,
-			})
+			commands = append(commands, command)
 		})
+		if parseErr != nil {
+			return commands, parseErr
+		}
 		return commands, err
 	default:
 		return nil, errors.New("object or array expected in API request")
