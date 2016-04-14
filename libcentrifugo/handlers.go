@@ -13,8 +13,10 @@ import (
 	"github.com/centrifugal/centrifugo/Godeps/_workspace/src/github.com/gorilla/websocket"
 	"github.com/centrifugal/centrifugo/Godeps/_workspace/src/gopkg.in/igm/sockjs-go.v2/sockjs"
 	"github.com/centrifugal/centrifugo/libcentrifugo/auth"
-	"github.com/mailru/easyjson"
-	"github.com/mailru/easyjson/jlexer"
+	//"github.com/mailru/easyjson"
+	//"github.com/mailru/easyjson/jlexer"
+
+	"github.com/buger/jsonparser"
 )
 
 // HandlerFlag is a bit mask of handlers that must be enabled in mux.
@@ -302,25 +304,64 @@ func cmdFromRequestMsg(msg []byte) ([]apiCommand, error) {
 	switch firstByte {
 	case objectJSONPrefix:
 		// single command request
-		var command apiCommand
-		err := easyjson.Unmarshal(msg, &command)
+		uid, err := jsonparser.GetString(msg, "uid")
 		if err != nil {
-			return nil, err
+			if err == jsonparser.KeyPathNotFoundError {
+				uid = ""
+			} else {
+				return commands, err
+			}
 		}
-		commands = append(commands, command)
+
+		method, err := jsonparser.GetString(msg, "method")
+		if err != nil {
+			return commands, err
+		}
+
+		params, _, _, err := jsonparser.Get(msg, "params")
+		if err != nil {
+			return commands, err
+		}
+
+		commands = append(commands, apiCommand{
+			UID:    uid,
+			Method: method,
+			Params: params,
+		})
 		return commands, nil
 	case arrayJSONPrefix:
 		// array of commands received
-		in := &jlexer.Lexer{Data: msg}
-		in.Delim('[')
-		for !in.IsDelim(']') {
-			var v1 apiCommand
-			(v1).UnmarshalEasyJSON(in)
-			commands = append(commands, v1)
-			in.WantComma()
-		}
-		in.Delim(']')
-		return commands, in.Error()
+		err := jsonparser.ArrayEach(msg, func(value []byte, vType jsonparser.ValueType, offset int, err error) {
+			if vType != jsonparser.Object {
+				return
+			}
+
+			uid, err := jsonparser.GetString(value, "uid")
+			if err != nil {
+				if err == jsonparser.KeyPathNotFoundError {
+					uid = ""
+				} else {
+					return
+				}
+			}
+
+			method, err := jsonparser.GetString(value, "method")
+			if err != nil {
+				return
+			}
+
+			params, _, _, err := jsonparser.Get(value, "params")
+			if err != nil {
+				return
+			}
+
+			commands = append(commands, apiCommand{
+				UID:    uid,
+				Method: method,
+				Params: params,
+			})
+		})
+		return commands, err
 	default:
 		return nil, errors.New("object or array expected in API request")
 	}
