@@ -1,6 +1,9 @@
 package libcentrifugo
 
 import (
+	"encoding/json"
+	"fmt"
+	"github.com/buger/jsonparser"
 	"github.com/centrifugal/centrifugo/Godeps/_workspace/src/github.com/FZambia/go-logger"
 	"github.com/mailru/easyjson"
 )
@@ -17,19 +20,97 @@ func (app *Application) apiCmd(command apiCommand) (*response, error) {
 	switch method {
 	case "publish":
 		var cmd publishAPICommand
-		err = easyjson.Unmarshal(params, &cmd)
+
+		channelBytes, err := jsonparser.GetString(params, "channel")
 		if err != nil {
 			logger.ERROR.Println(err)
 			return nil, ErrInvalidMessage
 		}
+
+		dataBytes, vType, _, err := jsonparser.Get(params, "data")
+
+		if err != nil {
+			logger.ERROR.Println(err)
+			return nil, ErrInvalidMessage
+		}
+
+		clientBytes, err := jsonparser.GetString(params, "client")
+		if err != nil {
+			if err == jsonparser.KeyPathNotFoundError {
+				clientBytes = ""
+			} else {
+				logger.ERROR.Println(err)
+				return nil, ErrInvalidMessage
+			}
+		}
+
+		if vType == jsonparser.Null {
+			cmd.Data = json.RawMessage([]byte("null"))
+		} else if vType == jsonparser.String {
+			cmd.Data = json.RawMessage([]byte(fmt.Sprintf("\"%s\"", string(dataBytes))))
+		} else {
+			cmd.Data = json.RawMessage(dataBytes)
+		}
+		cmd.Client = ConnID(clientBytes)
+		cmd.Channel = Channel(channelBytes)
+
+		/*
+			err = easyjson.Unmarshal(params, &cmd)
+			if err != nil {
+				logger.ERROR.Println(err)
+				return nil, ErrInvalidMessage
+			}
+		*/
 		resp, err = app.publishCmd(&cmd)
 	case "broadcast":
 		var cmd broadcastAPICommand
-		err = easyjson.Unmarshal(params, &cmd)
+
+		var channels []Channel
+
+		channelsBytes, _, _, err := jsonparser.Get(params, "channels")
 		if err != nil {
 			logger.ERROR.Println(err)
 			return nil, ErrInvalidMessage
 		}
+
+		// You can use `ArrayEach` helper to iterate items
+		jsonparser.ArrayEach(channelsBytes, func(value []byte, dataType jsonparser.ValueType, offset int, err error) {
+			channels = append(channels, Channel(value))
+		})
+
+		dataBytes, vType, _, err := jsonparser.Get(params, "data")
+		if err != nil {
+			logger.ERROR.Println(err)
+			return nil, ErrInvalidMessage
+		}
+
+		clientBytes, err := jsonparser.GetString(params, "client")
+		if err != nil {
+			if err == jsonparser.KeyPathNotFoundError {
+				clientBytes = ""
+			} else {
+				logger.ERROR.Println(err)
+				return nil, ErrInvalidMessage
+			}
+		}
+
+		if vType == jsonparser.Null {
+			cmd.Data = json.RawMessage([]byte("null"))
+		} else if vType == jsonparser.String {
+			cmd.Data = json.RawMessage([]byte(fmt.Sprintf("\"%s\"", string(dataBytes))))
+		} else {
+			cmd.Data = json.RawMessage(dataBytes)
+		}
+		cmd.Client = ConnID(clientBytes)
+		cmd.Channels = channels
+
+		/*
+			err = easyjson.Unmarshal(params, &cmd)
+			if err != nil {
+				logger.ERROR.Println(err)
+				return nil, ErrInvalidMessage
+			}
+		*/
 		resp, err = app.broadcastCmd(&cmd)
 	case "unsubscribe":
 		var cmd unsubscribeAPICommand
