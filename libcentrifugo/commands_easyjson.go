@@ -11,6 +11,10 @@ import (
 var _ = json.RawMessage{} // suppress unused package warning
 
 func easyjson_decode_github_com_centrifugal_centrifugo_libcentrifugo_pingAdminCommand(in *jlexer.Lexer, out *pingAdminCommand) {
+	if in.IsNull() {
+		in.Skip()
+		return
+	}
 	in.Delim('{')
 	for !in.IsDelim('}') {
 		key := in.UnsafeString()
@@ -59,6 +63,10 @@ func (v *pingAdminCommand) UnmarshalEasyJSON(l *jlexer.Lexer) {
 	easyjson_decode_github_com_centrifugal_centrifugo_libcentrifugo_pingAdminCommand(l, v)
 }
 func easyjson_decode_github_com_centrifugal_centrifugo_libcentrifugo_connectAdminCommand(in *jlexer.Lexer, out *connectAdminCommand) {
+	if in.IsNull() {
+		in.Skip()
+		return
+	}
 	in.Delim('{')
 	for !in.IsDelim('}') {
 		key := in.UnsafeString()
@@ -115,6 +123,10 @@ func (v *connectAdminCommand) UnmarshalEasyJSON(l *jlexer.Lexer) {
 	easyjson_decode_github_com_centrifugal_centrifugo_libcentrifugo_connectAdminCommand(l, v)
 }
 func easyjson_decode_github_com_centrifugal_centrifugo_libcentrifugo_disconnectControlCommand(in *jlexer.Lexer, out *disconnectControlCommand) {
+	if in.IsNull() {
+		in.Skip()
+		return
+	}
 	in.Delim('{')
 	for !in.IsDelim('}') {
 		key := in.UnsafeString()
@@ -163,6 +175,10 @@ func (v *disconnectControlCommand) UnmarshalEasyJSON(l *jlexer.Lexer) {
 	easyjson_decode_github_com_centrifugal_centrifugo_libcentrifugo_disconnectControlCommand(l, v)
 }
 func easyjson_decode_github_com_centrifugal_centrifugo_libcentrifugo_unsubscribeControlCommand(in *jlexer.Lexer, out *unsubscribeControlCommand) {
+	if in.IsNull() {
+		in.Skip()
+		return
+	}
 	in.Delim('{')
 	for !in.IsDelim('}') {
 		key := in.UnsafeString()
@@ -219,6 +235,10 @@ func (v *unsubscribeControlCommand) UnmarshalEasyJSON(l *jlexer.Lexer) {
 	easyjson_decode_github_com_centrifugal_centrifugo_libcentrifugo_unsubscribeControlCommand(l, v)
 }
 func easyjson_decode_github_com_centrifugal_centrifugo_libcentrifugo_pingControlCommand(in *jlexer.Lexer, out *pingControlCommand) {
+	if in.IsNull() {
+		in.Skip()
+		return
+	}
 	in.Delim('{')
 	for !in.IsDelim('}') {
 		key := in.UnsafeString()
@@ -267,6 +287,10 @@ func (v *pingControlCommand) UnmarshalEasyJSON(l *jlexer.Lexer) {
 	easyjson_decode_github_com_centrifugal_centrifugo_libcentrifugo_pingControlCommand(l, v)
 }
 func easyjson_decode_github_com_centrifugal_centrifugo_libcentrifugo_NodeInfo(in *jlexer.Lexer, out *NodeInfo) {
+	if in.IsNull() {
+		in.Skip()
+		return
+	}
 	in.Delim('{')
 	for !in.IsDelim('}') {
 		key := in.UnsafeString()
@@ -467,6 +491,10 @@ func easyjson_encode_github_com_centrifugal_centrifugo_libcentrifugo_NodeInfo(ou
 	out.RawByte('}')
 }
 func easyjson_decode_github_com_centrifugal_centrifugo_libcentrifugo_historyAPICommand(in *jlexer.Lexer, out *historyAPICommand) {
+	if in.IsNull() {
+		in.Skip()
+		return
+	}
 	in.Delim('{')
 	for !in.IsDelim('}') {
 		key := in.UnsafeString()
@@ -515,6 +543,10 @@ func (v *historyAPICommand) UnmarshalEasyJSON(l *jlexer.Lexer) {
 	easyjson_decode_github_com_centrifugal_centrifugo_libcentrifugo_historyAPICommand(l, v)
 }
 func easyjson_decode_github_com_centrifugal_centrifugo_libcentrifugo_presenceAPICommand(in *jlexer.Lexer, out *presenceAPICommand) {
+	if in.IsNull() {
+		in.Skip()
+		return
+	}
 	in.Delim('{')
 	for !in.IsDelim('}') {
 		key := in.UnsafeString()
@@ -563,6 +595,10 @@ func (v *presenceAPICommand) UnmarshalEasyJSON(l *jlexer.Lexer) {
 	easyjson_decode_github_com_centrifugal_centrifugo_libcentrifugo_presenceAPICommand(l, v)
 }
 func easyjson_decode_github_com_centrifugal_centrifugo_libcentrifugo_disconnectAPICommand(in *jlexer.Lexer, out *disconnectAPICommand) {
+	if in.IsNull() {
+		in.Skip()
+		return
+	}
 	in.Delim('{')
 	for !in.IsDelim('}') {
 		key := in.UnsafeString()
@@ -611,6 +647,10 @@ func (v *disconnectAPICommand) UnmarshalEasyJSON(l *jlexer.Lexer) {
 	easyjson_decode_github_com_centrifugal_centrifugo_libcentrifugo_disconnectAPICommand(l, v)
 }
 func easyjson_decode_github_com_centrifugal_centrifugo_libcentrifugo_unsubscribeAPICommand(in *jlexer.Lexer, out *unsubscribeAPICommand) {
+	if in.IsNull() {
+		in.Skip()
+		return
+	}
 	in.Delim('{')
 	for !in.IsDelim('}') {
 		key := in.UnsafeString()
@@ -667,6 +707,10 @@ func (v *unsubscribeAPICommand) UnmarshalEasyJSON(l *jlexer.Lexer) {
 	easyjson_decode_github_com_centrifugal_centrifugo_libcentrifugo_unsubscribeAPICommand(l, v)
 }
 func easyjson_decode_github_com_centrifugal_centrifugo_libcentrifugo_broadcastAPICommand(in *jlexer.Lexer, out *broadcastAPICommand) {
+	if in.IsNull() {
+		in.Skip()
+		return
+	}
 	in.Delim('{')
 	for !in.IsDelim('}') {
 		key := in.UnsafeString()
@@ -752,6 +796,10 @@ func (v *broadcastAPICommand) UnmarshalEasyJSON(l *jlexer.Lexer) {
 	easyjson_decode_github_com_centrifugal_centrifugo_libcentrifugo_broadcastAPICommand(l, v)
 }
 func easyjson_decode_github_com_centrifugal_centrifugo_libcentrifugo_publishAPICommand(in *jlexer.Lexer, out *publishAPICommand) {
+	if in.IsNull() {
+		in.Skip()
+		return
+	}
 	in.Delim('{')
 	for !in.IsDelim('}') {
 		key := in.UnsafeString()
@@ -818,6 +866,10 @@ func (v *publishAPICommand) UnmarshalEasyJSON(l *jlexer.Lexer) {
 	easyjson_decode_github_com_centrifugal_centrifugo_libcentrifugo_publishAPICommand(l, v)
 }
 func easyjson_decode_github_com_centrifugal_centrifugo_libcentrifugo_PingClientCommand(in *jlexer.Lexer, out *PingClientCommand) {
+	if in.IsNull() {
+		in.Skip()
+		return
+	}
 	in.Delim('{')
 	for !in.IsDelim('}') {
 		key := in.UnsafeString()
@@ -866,6 +918,10 @@ func (v *PingClientCommand) UnmarshalEasyJSON(l *jlexer.Lexer) {
 	easyjson_decode_github_com_centrifugal_centrifugo_libcentrifugo_PingClientCommand(l, v)
 }
 func easyjson_decode_github_com_centrifugal_centrifugo_libcentrifugo_HistoryClientCommand(in *jlexer.Lexer, out *HistoryClientCommand) {
+	if in.IsNull() {
+		in.Skip()
+		return
+	}
 	in.Delim('{')
 	for !in.IsDelim('}') {
 		key := in.UnsafeString()
@@ -914,6 +970,10 @@ func (v *HistoryClientCommand) UnmarshalEasyJSON(l *jlexer.Lexer) {
 	easyjson_decode_github_com_centrifugal_centrifugo_libcentrifugo_HistoryClientCommand(l, v)
 }
 func easyjson_decode_github_com_centrifugal_centrifugo_libcentrifugo_PresenceClientCommand(in *jlexer.Lexer, out *PresenceClientCommand) {
+	if in.IsNull() {
+		in.Skip()
+		return
+	}
 	in.Delim('{')
 	for !in.IsDelim('}') {
 		key := in.UnsafeString()
@@ -962,6 +1022,10 @@ func (v *PresenceClientCommand) UnmarshalEasyJSON(l *jlexer.Lexer) {
 	easyjson_decode_github_com_centrifugal_centrifugo_libcentrifugo_PresenceClientCommand(l, v)
 }
 func easyjson_decode_github_com_centrifugal_centrifugo_libcentrifugo_PublishClientCommand(in *jlexer.Lexer, out *PublishClientCommand) {
+	if in.IsNull() {
+		in.Skip()
+		return
+	}
 	in.Delim('{')
 	for !in.IsDelim('}') {
 		key := in.UnsafeString()
@@ -1020,6 +1084,10 @@ func (v *PublishClientCommand) UnmarshalEasyJSON(l *jlexer.Lexer) {
 	easyjson_decode_github_com_centrifugal_centrifugo_libcentrifugo_PublishClientCommand(l, v)
 }
 func easyjson_decode_github_com_centrifugal_centrifugo_libcentrifugo_UnsubscribeClientCommand(in *jlexer.Lexer, out *UnsubscribeClientCommand) {
+	if in.IsNull() {
+		in.Skip()
+		return
+	}
 	in.Delim('{')
 	for !in.IsDelim('}') {
 		key := in.UnsafeString()
@@ -1068,6 +1136,10 @@ func (v *UnsubscribeClientCommand) UnmarshalEasyJSON(l *jlexer.Lexer) {
 	easyjson_decode_github_com_centrifugal_centrifugo_libcentrifugo_UnsubscribeClientCommand(l, v)
 }
 func easyjson_decode_github_com_centrifugal_centrifugo_libcentrifugo_SubscribeClientCommand(in *jlexer.Lexer, out *SubscribeClientCommand) {
+	if in.IsNull() {
+		in.Skip()
+		return
+	}
 	in.Delim('{')
 	for !in.IsDelim('}') {
 		key := in.UnsafeString()
@@ -1156,6 +1228,10 @@ func (v *SubscribeClientCommand) UnmarshalEasyJSON(l *jlexer.Lexer) {
 	easyjson_decode_github_com_centrifugal_centrifugo_libcentrifugo_SubscribeClientCommand(l, v)
 }
 func easyjson_decode_github_com_centrifugal_centrifugo_libcentrifugo_RefreshClientCommand(in *jlexer.Lexer, out *RefreshClientCommand) {
+	if in.IsNull() {
+		in.Skip()
+		return
+	}
 	in.Delim('{')
 	for !in.IsDelim('}') {
 		key := in.UnsafeString()
@@ -1228,6 +1304,10 @@ func (v *RefreshClientCommand) UnmarshalEasyJSON(l *jlexer.Lexer) {
 	easyjson_decode_github_com_centrifugal_centrifugo_libcentrifugo_RefreshClientCommand(l, v)
 }
 func easyjson_decode_github_com_centrifugal_centrifugo_libcentrifugo_ConnectClientCommand(in *jlexer.Lexer, out *ConnectClientCommand) {
+	if in.IsNull() {
+		in.Skip()
+		return
+	}
 	in.Delim('{')
 	for !in.IsDelim('}') {
 		key := in.UnsafeString()
@@ -1300,6 +1380,10 @@ func (v *ConnectClientCommand) UnmarshalEasyJSON(l *jlexer.Lexer) {
 	easyjson_decode_github_com_centrifugal_centrifugo_libcentrifugo_ConnectClientCommand(l, v)
 }
 func easyjson_decode_github_com_centrifugal_centrifugo_libcentrifugo_controlCommand(in *jlexer.Lexer, out *controlCommand) {
+	if in.IsNull() {
+		in.Skip()
+		return
+	}
 	in.Delim('{')
 	for !in.IsDelim('}') {
 		key := in.UnsafeString()
@@ -1376,6 +1460,10 @@ func (v *controlCommand) UnmarshalEasyJSON(l *jlexer.Lexer) {
 	easyjson_decode_github_com_centrifugal_centrifugo_libcentrifugo_controlCommand(l, v)
 }
 func easyjson_decode_github_com_centrifugal_centrifugo_libcentrifugo_adminCommand(in *jlexer.Lexer, out *adminCommand) {
+	if in.IsNull() {
+		in.Skip()
+		return
+	}
 	in.Delim('{')
 	for !in.IsDelim('}') {
 		key := in.UnsafeString()
@@ -1442,6 +1530,10 @@ func (v *adminCommand) UnmarshalEasyJSON(l *jlexer.Lexer) {
 	easyjson_decode_github_com_centrifugal_centrifugo_libcentrifugo_adminCommand(l, v)
 }
 func easyjson_decode_github_com_centrifugal_centrifugo_libcentrifugo_redisAPIRequest(in *jlexer.Lexer, out *redisAPIRequest) {
+	if in.IsNull() {
+		in.Skip()
+		return
+	}
 	in.Delim('{')
 	for !in.IsDelim('}') {
 		key := in.UnsafeString()
@@ -1509,6 +1601,10 @@ func (v *redisAPIRequest) UnmarshalEasyJSON(l *jlexer.Lexer) {
 	easyjson_decode_github_com_centrifugal_centrifugo_libcentrifugo_redisAPIRequest(l, v)
 }
 func easyjson_decode_github_com_centrifugal_centrifugo_libcentrifugo_apiCommand(in *jlexer.Lexer, out *apiCommand) {
+	if in.IsNull() {
+		in.Skip()
+		return
+	}
 	in.Delim('{')
 	for !in.IsDelim('}') {
 		key := in.UnsafeString()
@@ -1575,6 +1671,10 @@ func (v *apiCommand) UnmarshalEasyJSON(l *jlexer.Lexer) {
 	easyjson_decode_github_com_centrifugal_centrifugo_libcentrifugo_apiCommand(l, v)
 }
 func easyjson_decode_github_com_centrifugal_centrifugo_libcentrifugo_clientCommand(in *jlexer.Lexer, out *clientCommand) {
+	if in.IsNull() {
+		in.Skip()
+		return
+	}
 	in.Delim('{')
 	for !in.IsDelim('}') {
 		key := in.UnsafeString()

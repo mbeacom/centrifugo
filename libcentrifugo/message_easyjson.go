@@ -11,6 +11,10 @@ import (
 var _ = json.RawMessage{} // suppress unused package warning
 
 func easyjson_decode_github_com_centrifugal_centrifugo_libcentrifugo_Message(in *jlexer.Lexer, out *Message) {
+	if in.IsNull() {
+		in.Skip()
+		return
+	}
 	in.Delim('{')
 	for !in.IsDelim('}') {
 		key := in.UnsafeString()
@@ -125,6 +129,10 @@ func (v *Message) UnmarshalEasyJSON(l *jlexer.Lexer) {
 	easyjson_decode_github_com_centrifugal_centrifugo_libcentrifugo_Message(l, v)
 }
 func easyjson_decode_github_com_centrifugal_centrifugo_libcentrifugo_ClientInfo(in *jlexer.Lexer, out *ClientInfo) {
+	if in.IsNull() {
+		in.Skip()
+		return
+	}
 	in.Delim('{')
 	for !in.IsDelim('}') {
 		key := in.UnsafeString()
