@@ -8,9 +8,7 @@ In a nutshell this is a server running near your application and keeping lots of
 To get more information what is it for and how it works – please, read 
 [documentation](http://fzambia.gitbooks.io/centrifugal/content/).
 
-Releases available as single executable files – just 
-[download latest release](https://github.com/centrifugal/centrifugo/releases) for your platform,  
-unpack it and run.
+Releases available as single executable files – just [download latest release](https://github.com/centrifugal/centrifugo/releases) for your platform, unpack and run.
 
 See official [Docker image](https://hub.docker.com/r/centrifugo/centrifugo/).
 
@@ -26,7 +24,7 @@ Highlights:
 * HTTP API to communicate from your application backend (publish messages in channels etc.). API clients for Python, Ruby, PHP, Go, NodeJS. Simple to implement new one
 * Javascript client to connect from web browser over SockJS or pure Websocket protocol
 * Scale to several machines with Redis
-* SHA-256 HMAC-based authentication
+* SHA-256 HMAC-based connection authentication and private channel authorization
 * Different types of channels – private, user limited, client limited channels
 * Flexible configuration of channels via namespaces
 * Presence information for channels (show all clients in channel)
@@ -34,6 +32,7 @@ Highlights:
 * Join/leave events for channels (client goes online/offline)
 * Recover missed messages after network disconnect
 * Built-in administrative web interface
+* Possibility to use as WebRTC signaling server
 * Ready to deploy (docker image, RPM/DEB packages, Nginx configuration)
 * MIT license
 
