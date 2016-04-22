@@ -7,8 +7,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/centrifugal/centrifugo/Godeps/_workspace/src/github.com/FZambia/go-logger"
-	"github.com/centrifugal/centrifugo/Godeps/_workspace/src/github.com/satori/go.uuid"
+	"github.com/FZambia/go-logger"
+	"github.com/satori/go.uuid"
 	"github.com/centrifugal/centrifugo/libcentrifugo/auth"
 	"github.com/centrifugal/centrifugo/libcentrifugo/bytequeue"
 	"github.com/mailru/easyjson"

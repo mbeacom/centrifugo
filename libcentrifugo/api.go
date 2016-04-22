@@ -3,8 +3,9 @@ package libcentrifugo
 import (
 	"encoding/json"
 	"fmt"
+
 	"github.com/buger/jsonparser"
-	"github.com/centrifugal/centrifugo/Godeps/_workspace/src/github.com/FZambia/go-logger"
+	"github.com/FZambia/go-logger"
 	"github.com/mailru/easyjson"
 )
 

@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/centrifugal/centrifugo/Godeps/_workspace/src/github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/assert"
 	"github.com/mailru/easyjson"
 )
 
