@@ -37,7 +37,7 @@ func (e *MemoryEngine) run() error {
 	return nil
 }
 
-func (e *MemoryEngine) publish(chID ChannelID, message []byte, opts *publishOpts) <-chan error {
+func (e *MemoryEngine) publish(chID ChannelID, message Message, opts *publishOpts) <-chan error {
 	hasCurrentSubscribers := e.app.clients.hasSubscribers(chID)
 
 	if opts != nil && opts.HistorySize > 0 && opts.HistoryLifetime > 0 {

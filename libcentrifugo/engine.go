@@ -7,8 +7,8 @@ type historyOpts struct {
 }
 
 type publishOpts struct {
-	// Message is Message being published
-	Message Message
+	// TODO: write comment
+	Watch bool
 	// HistorySize is maximum size of channel history that engine must maintain.
 	HistorySize int
 	// HistoryLifetime is maximum amount of seconds history messages should exist
@@ -30,12 +30,18 @@ type Engine interface {
 	// run called once just after engine set to application.
 	run() error
 
-	// publish allows to send message into channel.
-	// If publishOpts is nil message must be just sent into provided channel
-	// and no additional work must be done.
-	// The returned value is channel in which we will send error as soon as engine
-	// finishes publish operation.
-	publish(chID ChannelID, message []byte, opts *publishOpts) <-chan error
+	// publishMessage allows to send message into channel. The returned value is channel
+	// in which we will send error as soon as engine finishes publish operation. Also
+	// the task of this method is to maintain history for channels if enabled.
+	publishMessage(chID ChannelID, message Message, opts *ChannelOptions) <-chan error
+	// publishJoin allows to send join message into channel.
+	publishJoin(chID ChannelID, message JoinLeaveBody) <-chan error
+	// publishLeave allows to send leave message into channel.
+	publishLeave(chID ChannelID, message JoinLeaveBody) <-chan error
+	// publishAdmin allows to send admin message to all connected admins.
+	publishAdmin(chID ChannelID, message AdminCommand) <-chan error
+	// publishControl allows to send control message to all connected nodes.
+	publishControl(chID ChannelID, message ControlCommand) <-chan error
 
 	// subscribe on channel.
 	subscribe(chID ChannelID) error

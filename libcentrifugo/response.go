@@ -23,19 +23,19 @@ type clientResponse struct {
 	clientError
 }
 
-// clientMessageResponse uses strong type for body instead of interface{} - helps to
-// reduce allocations when marshaling.
-type clientMessageResponse struct {
-	clientResponse
-	Body Message `json:"body"`
+// ClientMessageResponse uses strong type for body instead of interface{} - helps to
+// reduce allocations when marshaling. Also it does not have error -  because message
+// client response never contains it.
+//easyjson:json
+type ClientMessageResponse struct {
+	Method string  `json:"method"`
+	Body   Message `json:"body"`
 }
 
 // newClientMessage returns initialized client message response.
-func newClientMessage() *clientMessageResponse {
-	return &clientMessageResponse{
-		clientResponse: clientResponse{
-			Method: "message",
-		},
+func newClientMessage() *ClientMessageResponse {
+	return &ClientMessageResponse{
+		Method: "message",
 	}
 }
 
@@ -112,7 +112,8 @@ type ChannelsBody struct {
 	Data []Channel `json:"data"`
 }
 
-// JoinLeaveBody represents body of response when join or leave async response sent to client.
+// JoinLeaveBody represents join or leave async body of response response sent to client
+// when someone subscribes/unsubscribes to/from channel.
 type JoinLeaveBody struct {
 	Channel Channel    `json:"channel"`
 	Data    ClientInfo `json:"data"`
