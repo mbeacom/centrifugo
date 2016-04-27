@@ -486,8 +486,8 @@ func (app *Application) pubClient(ch Channel, chOpts ChannelOptions, data []byte
 	return app.engine.publishMessage(chID, &message, &chOpts)
 }
 
-// pubJoinLeave allows to publish join message into channel when
-// someone subscribes on it or leave message when someone unsubscribed from channel.
+// pubJoinLeave allows to publish join message into channel when someone subscribes on it
+// or leave message when someone unsubscribes from channel.
 func (app *Application) pubJoinLeave(ch Channel, method string, info ClientInfo) error {
 	chID := app.channelID(ch)
 	message := JoinLeaveMessage{
