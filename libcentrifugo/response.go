@@ -39,6 +39,35 @@ func newClientMessage() *ClientMessageResponse {
 	}
 }
 
+// JoinLeaveMessage represents join or leave async response sent to client
+// when someone subscribes/unsubscribes to/from channel.
+type JoinLeaveMessage struct {
+	Channel Channel    `json:"channel"`
+	Data    ClientInfo `json:"data"`
+}
+
+type ClientJoinResponse struct {
+	Method string           `json:"method"`
+	Body   JoinLeaveMessage `json:"body"`
+}
+
+func newClientJoinMessage() *ClientJoinResponse {
+	return &ClientJoinResponse{
+		Method: "join",
+	}
+}
+
+type ClientLeaveResponse struct {
+	Method string           `json:"method"`
+	Body   JoinLeaveMessage `json:"body"`
+}
+
+func newClientLeaveMessage() *ClientLeaveResponse {
+	return &ClientLeaveResponse{
+		Method: "leave",
+	}
+}
+
 // newClientResponse returns client response initialized with provided method.
 // Setting other client response fields is a caller responsibility.
 func newClientResponse(method string) *clientResponse {
@@ -110,13 +139,6 @@ type HistoryBody struct {
 // ChannelsBody represents body of response in case of successful channels command.
 type ChannelsBody struct {
 	Data []Channel `json:"data"`
-}
-
-// JoinLeaveBody represents join or leave async body of response response sent to client
-// when someone subscribes/unsubscribes to/from channel.
-type JoinLeaveBody struct {
-	Channel Channel    `json:"channel"`
-	Data    ClientInfo `json:"data"`
 }
 
 // ConnectBody represents body of response in case of successful connect command.

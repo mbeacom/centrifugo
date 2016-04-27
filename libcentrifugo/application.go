@@ -52,12 +52,8 @@ type Application struct {
 	// metrics holds various counters and timers different parts of Centrifugo update.
 	metrics *metricsRegistry
 
-	// chIDMessagePrefix added before every message channel ID.
-	chIDMessagePrefix string
-	// chIDJoinPrefix added before every join channel ID.
-	chIDJoinPrefix string
-	// chIDLeavePrefix added before every leave channel ID.
-	chIDLeavePrefix string
+	// chIDPrefix added before every message channel ID.
+	chIDPrefix string
 }
 
 // Stats contains state and metrics information from running Centrifugo nodes.
@@ -82,25 +78,21 @@ type NodeInfo struct {
 }
 
 const (
-	channelIDMessage = ".channel."
-	channelIDJoin    = ".join."
-	channelIDLeave   = ".leave."
+	channelIDPrefix = ".channel."
 )
 
 // NewApplication returns new Application instance, the only required argument is
 // config, structure and engine must be set via corresponding methods.
 func NewApplication(config *Config) (*Application, error) {
 	app := &Application{
-		uid:               uuid.NewV4().String(),
-		config:            config,
-		clients:           newClientHub(),
-		admins:            newAdminHub(),
-		nodes:             make(map[string]NodeInfo),
-		started:           time.Now().Unix(),
-		metrics:           &metricsRegistry{},
-		chIDMessagePrefix: config.ChannelPrefix + channelIDMessage,
-		chIDJoinPrefix:    config.ChannelPrefix + channelIDJoin,
-		chIDLeavePrefix:   config.ChannelPrefix + channelIDLeave,
+		uid:        uuid.NewV4().String(),
+		config:     config,
+		clients:    newClientHub(),
+		admins:     newAdminHub(),
+		nodes:      make(map[string]NodeInfo),
+		started:    time.Now().Unix(),
+		metrics:    &metricsRegistry{},
+		chIDPrefix: config.ChannelPrefix + channelIDPrefix,
 	}
 	return app, nil
 }
@@ -181,9 +173,7 @@ func (app *Application) SetConfig(c *Config) {
 	app.Lock()
 	defer app.Unlock()
 	app.config = c
-	app.chIDMessagePrefix = c.ChannelPrefix + channelIDMessage
-	app.chIDJoinPrefix = c.ChannelPrefix + channelIDJoin
-	app.chIDLeavePrefix = c.ChannelPrefix + channelIDLeave
+	app.chIDPrefix = c.ChannelPrefix + channelIDPrefix
 	if app.config.Insecure {
 		logger.WARN.Println("libcentrifugo: application in INSECURE MODE")
 	}
@@ -206,16 +196,15 @@ func (app *Application) SetMediator(m Mediator) {
 func (app *Application) channels() ([]Channel, error) {
 	app.RLock()
 	controlChID := app.config.ControlChannel
-	adminChID := app.config.AdminChannel
 	app.RUnlock()
 	chIDs, err := app.engine.channels()
 	if err != nil {
 		return []Channel{}, err
 	}
-	prefix := app.channelIDMessagePrefix()
+	prefix := app.channelIDPrefix()
 	channels := make([]Channel, 0, len(chIDs))
 	for _, chID := range chIDs {
-		if strings.HasPrefix(string(chID), prefix) && chID != controlChID && chID != adminChID {
+		if strings.HasPrefix(string(chID), prefix) && chID != controlChID {
 			channels = append(channels, Channel(string(chID)[len(prefix):]))
 		}
 	}
@@ -255,67 +244,85 @@ func (app *Application) node() NodeInfo {
 	return info
 }
 
+type TypePrefix byte
+
+const (
+	ClientMessagePrefix TypePrefix = 'M'
+	JoinMessagePrefix   TypePrefix = 'J'
+	LeaveMessagePrefix  TypePrefix = 'L'
+)
+
 // handleMsg called when new message of any type received by this node.
 // It looks at channel and decides which message handler to call.
-func (app *Application) handleRawMessage(chID ChannelID, data []byte) error {
+func (app *Application) handleMessageFromEngine(chID ChannelID, data []byte) error {
 	switch chID {
 	case app.config.ControlChannel:
-		return app.controlMsg(app.decodeControlMsg(message))
-	case app.config.AdminChannel:
-		// TODO: check admins here.
-		return app.adminMsg(app.decodeAdminMsg(message))
+		message, _ := app.decodeEngineControlMessage(data)
+		return app.controlMsg(message)
 	default:
+		// TODO: move this and type constants to Redis Engine.
 		if len(data) == 0 {
 			// Got empty message, nothing to do.
 			return nil
 		}
-		messageType := data[0]
+		messageType := TypePrefix(data[0])
 		messageBytes := data[1:]
 		switch messageType {
-		case "M":
+		case ClientMessagePrefix:
 			// message published into channel.
-			message := app.decodeMessage(messageBytes)
-			return app.clientMsg(chID, message)
-		case "J":
+			message, _ := app.decodeEngineClientMessage(messageBytes)
+			return app.clientMsg(chID, message, nil)
+		case JoinMessagePrefix:
 			// join message.
-			joinMessage := app.decodeJoinMessage(messageBytes)
+			joinMessage, _ := app.decodeEngineJoinMessage(messageBytes)
 			return app.joinMsg(chID, joinMessage)
-		case "L":
+		case LeaveMessagePrefix:
 			// leave message.
-			leaveMessage := app.decodeLeaveMessage(messageBytes)
+			leaveMessage, _ := app.decodeEngineLeaveMessage(messageBytes)
 			return app.leaveMsg(chID, leaveMessage)
 		default:
 			logger.ERROR.Printf("unknown message type prefix: %s", string(messageType))
 			return ErrInvalidMessage
 		}
-
-		/*
-			// TODO: looks strange. Maybe message type prefix is a cleaner idea.
-			if strings.HasPrefix(string(chID), app.channelIDMessagePrefix()) {
-				// TODO: check subscribers here.
-				return app.publishedMsg(chID, app.decodeMessage(message))
-			} else if strings.HasPrefix(string(chID), app.channelIDJoinPrefix()) {
-				// TODO: check subscribers here.
-				return app.joinMsg(chID, app.decodeJoinMessage(message))
-			} else if strings.HasPrefix(string(chID), app.channelIDLeavePrefix()) {
-				// TODO: check subscribers here.
-				return app.leaveMsg(chID, app.decodeLeaveMessage(message))
-			}
-		*/
 	}
+}
+
+func (app *Application) decodeEngineControlMessage(data []byte) (*ControlCommand, error) {
+	return &ControlCommand{}, nil
+}
+
+func (app *Application) decodeEngineClientMessage(data []byte) (*Message, error) {
+	return &Message{}, nil
+}
+
+func (app *Application) decodeEngineJoinMessage(data []byte) (*JoinLeaveMessage, error) {
+	return &JoinLeaveMessage{}, nil
+}
+
+func (app *Application) decodeEngineLeaveMessage(data []byte) (*JoinLeaveMessage, error) {
+	return &JoinLeaveMessage{}, nil
+}
+
+func (app *Application) encodeEngineControlMessage(msg *ControlCommand) ([]byte, error) {
+	return nil, nil
+}
+
+func (app *Application) encodeEngineClientMessage(msg *Message) ([]byte, error) {
+	return nil, nil
+}
+
+func (app *Application) encodeEngineJoinMessage(msg *JoinLeaveMessage) ([]byte, error) {
+	return nil, nil
+}
+
+func (app *Application) encodeEngineLeaveMessage(msg *JoinLeaveMessage) ([]byte, error) {
+	return nil, nil
 }
 
 // controlMsg handles messages from control channel - control
 // messages used for internal communication between nodes to share state
 // or commands.
-func (app *Application) controlMsg(message []byte) error {
-
-	var cmd controlCommand
-	err := json.Unmarshal(message, &cmd)
-	if err != nil {
-		logger.ERROR.Println(err)
-		return err
-	}
+func (app *Application) controlMsg(cmd *ControlCommand) error {
 
 	if cmd.UID == app.uid {
 		// Sent by this node.
@@ -356,40 +363,50 @@ func (app *Application) controlMsg(message []byte) error {
 	}
 }
 
-// adminMsg handles messages from admin channel - those messages
-// must be delivered to all admins connected to this node.
-func (app *Application) adminMsg(message []byte) error {
-	return app.admins.broadcast(message)
-}
+// clientMsg handles messages published by web application or client into channel.
+// The goal of this method to deliver this message to all clients on this node subscribed
+// on channel and to all connected admins if any and watch option enabled.
+func (app *Application) clientMsg(chID ChannelID, message *Message, chOpts *ChannelOptions) error {
+	hasCurrentSubscribers := app.clients.hasSubscribers(chID)
 
-// clientMsg handles messages published by web application or client
-// into channel. The goal of this method to deliver this message to all clients
-// on this node subscribed on channel.
-func (app *Application) clientMsg(chID ChannelID, message []byte) error {
-	return app.clients.broadcast(chID, message)
+	app.admins.RLock()
+	hasAdmins := len(app.admins.connections) > 0
+	app.admins.RUnlock()
+
+	resp := newClientMessage()
+	resp.Body = *message
+
+	if !hasCurrentSubscribers && (!chOpts.Watch || !hasAdmins) {
+		return nil
+	}
+
+	byteMessage, err := json.Marshal(resp)
+	if err != nil {
+		return err
+	}
+
+	if chOpts.Watch {
+		// No error handling because we can not block to wait
+		// for publish error here.
+		app.admins.broadcast(byteMessage)
+	}
+
+	return app.clients.broadcast(chID, byteMessage)
 }
 
 // pubControl publishes message into control channel so all running
 // nodes will receive and handle it.
 func (app *Application) pubControl(method string, params []byte) error {
-
 	raw := json.RawMessage(params)
-
-	message := controlCommand{
+	message := ControlCommand{
 		UID:    app.uid,
 		Method: method,
 		Params: &raw,
 	}
-
-	messageBytes, err := json.Marshal(message)
-	if err != nil {
-		return err
-	}
-
 	app.RLock()
 	controlChannel := app.config.ControlChannel
 	app.RUnlock()
-	return <-app.engine.publish(controlChannel, messageBytes, nil)
+	return <-app.engine.publishControl(controlChannel, &message)
 }
 
 // Publish sends a message to all clients subscribed on channel with provided data, client and ClientInfo.
@@ -463,59 +480,55 @@ func (app *Application) publish(ch Channel, data []byte, client ConnID, info *Cl
 // pubClient publishes message into channel so all running nodes
 // will receive it and will send to all clients on node subscribed on channel.
 func (app *Application) pubClient(ch Channel, chOpts ChannelOptions, data []byte, client ConnID, info *ClientInfo) <-chan error {
-
 	message := newMessage(ch, data, client, info)
-
-	/*
-
-		resp := newClientMessage()
-		resp.Body = message
-
-		byteMessage, err := json.Marshal(resp)
-		if err != nil {
-			return makeErrChan(err)
-		}
-
-		if chOpts.Watch {
-			app.RLock()
-			adminChannel := app.config.AdminChannel
-			app.RUnlock()
-			// No error handling because we can not block to wait
-			// for publish error here.
-			app.engine.publish(adminChannel, byteMessage, nil)
-		}
-	*/
-
 	chID := app.channelID(ch)
-
-	/*
-		pubOpts := &publishOpts{
-			Watch:               chOpts.Watch,
-			HistorySize:         chOpts.HistorySize,
-			HistoryLifetime:     chOpts.HistoryLifetime,
-			HistoryDropInactive: chOpts.HistoryDropInactive,
-		}
-	*/
-
 	app.metrics.NumMsgPublished.Inc()
-
-	return app.engine.publish(chID, message, &chOpts)
+	return app.engine.publishMessage(chID, &message, &chOpts)
 }
 
 // pubJoinLeave allows to publish join message into channel when
 // someone subscribes on it or leave message when someone unsubscribed from channel.
 func (app *Application) pubJoinLeave(ch Channel, method string, info ClientInfo) error {
 	chID := app.channelID(ch)
-	resp := newClientResponse(method)
-	resp.Body = &JoinLeaveBody{
+	message := JoinLeaveMessage{
 		Channel: ch,
 		Data:    info,
 	}
+	if method == "join" {
+		return <-app.engine.publishJoin(chID, &message)
+	} else if method == "leave" {
+		return <-app.engine.publishLeave(chID, &message)
+	} else {
+		panic("Only join and leave methods supported in pubJoinLeave")
+	}
+}
+
+func (app *Application) joinMsg(chID ChannelID, message *JoinLeaveMessage) error {
+	hasCurrentSubscribers := app.clients.hasSubscribers(chID)
+	if !hasCurrentSubscribers {
+		return nil
+	}
+	resp := newClientJoinMessage()
+	resp.Body = *message
 	byteMessage, err := json.Marshal(resp)
 	if err != nil {
 		return err
 	}
-	return <-app.engine.publish(chID, byteMessage, nil)
+	return app.clients.broadcast(chID, byteMessage)
+}
+
+func (app *Application) leaveMsg(chID ChannelID, message *JoinLeaveMessage) error {
+	hasCurrentSubscribers := app.clients.hasSubscribers(chID)
+	if !hasCurrentSubscribers {
+		return nil
+	}
+	resp := newClientLeaveMessage()
+	resp.Body = *message
+	byteMessage, err := json.Marshal(resp)
+	if err != nil {
+		return err
+	}
+	return app.clients.broadcast(chID, byteMessage)
 }
 
 // pubPing sends control ping message to all nodes - this message
@@ -593,15 +606,15 @@ func (app *Application) pingCmd(cmd *pingControlCommand) error {
 	return nil
 }
 
-func (app *Application) channelIDMessagePrefix() string {
+func (app *Application) channelIDPrefix() string {
 	app.RLock()
 	defer app.RUnlock()
-	return app.chIDMessagePrefix
+	return app.chIDPrefix
 }
 
 // channelID returns internal name of channel.
 func (app *Application) channelID(ch Channel) ChannelID {
-	return ChannelID(app.channelIDMessagePrefix() + string(ch))
+	return ChannelID(app.channelIDPrefix() + string(ch))
 }
 
 // addConn registers authenticated connection in clientConnectionHub

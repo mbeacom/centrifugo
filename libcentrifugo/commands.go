@@ -17,7 +17,7 @@ type (
 	MessageID string
 )
 
-type ClientCommand struct {
+type clientCommand struct {
 	UID    string          `json:"uid"`
 	Method string          `json:"method"`
 	Params json.RawMessage `json:"params"`

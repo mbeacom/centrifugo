@@ -381,7 +381,7 @@ func (e *RedisEngine) run() error {
 }
 
 type redisAPIRequest struct {
-	Data []apiCommand
+	Data []APICommand
 }
 
 // runForever simple keeps another function running indefinitely
@@ -529,7 +529,6 @@ func (e *RedisEngine) runPubSub() {
 	defer logger.DEBUG.Println("Return from runPubSub")
 
 	e.app.RLock()
-	adminChannel := e.app.config.AdminChannel
 	controlChannel := e.app.config.ControlChannel
 	e.app.RUnlock()
 
@@ -604,9 +603,7 @@ func (e *RedisEngine) runPubSub() {
 	// We don't care if they fail since conn will be closed and we'll retry
 	// if they do anyway.
 	// This saves a lot of allocating of pointless chans...
-	r := newSubRequest(adminChannel, false)
-	e.subCh <- r
-	r = newSubRequest(controlChannel, false)
+	r := newSubRequest(controlChannel, false)
 	e.subCh <- r
 	for _, chID := range e.app.clients.channels() {
 		r = newSubRequest(chID, false)
@@ -616,7 +613,7 @@ func (e *RedisEngine) runPubSub() {
 	for {
 		switch n := conn.Receive().(type) {
 		case redis.Message:
-			e.app.handleMsg(ChannelID(n.Channel), n.Data)
+			e.app.handleMessageFromEngine(ChannelID(n.Channel), n.Data)
 		case redis.Subscription:
 		case error:
 			logger.ERROR.Printf("RedisEngine Receiver error: %v\n", n)
@@ -630,7 +627,7 @@ type pubRequest struct {
 	message     []byte
 	messageJSON []byte
 	historyKey  string
-	opts        *publishOpts
+	opts        *ChannelOptions
 	err         *chan error
 }
 
@@ -714,19 +711,20 @@ func (e *RedisEngine) runPublishPipeline() {
 	}
 }
 
-func (e *RedisEngine) publish(chID ChannelID, message []byte, opts *publishOpts) <-chan error {
+func (e *RedisEngine) publishMessage(chID ChannelID, message *Message, opts *ChannelOptions) <-chan error {
 
 	eChan := make(chan error, 1)
 
+	messageJSON, err := json.Marshal(message)
+	if err != nil {
+		eChan <- err
+		return eChan
+	}
+
 	if opts != nil && opts.HistorySize > 0 && opts.HistoryLifetime > 0 {
-		messageJSON, err := json.Marshal(opts.Message)
-		if err != nil {
-			eChan <- err
-			return eChan
-		}
 		pr := &pubRequest{
 			channel:     chID,
-			message:     message,
+			message:     messageJSON, // TODO: fix repeatitions!!!
 			historyKey:  e.getHistoryKey(chID),
 			messageJSON: messageJSON,
 			opts:        opts,
@@ -738,11 +736,29 @@ func (e *RedisEngine) publish(chID ChannelID, message []byte, opts *publishOpts)
 
 	pr := &pubRequest{
 		channel: chID,
-		message: message,
+		message: messageJSON,
 		err:     &eChan,
 	}
 	e.pubCh <- pr
 	return eChan
+}
+
+func (e *RedisEngine) publishJoin(chID ChannelID, message *JoinLeaveMessage) <-chan error {
+	ch := make(chan error, 1)
+	ch <- e.app.joinMsg(chID, message)
+	return ch
+}
+
+func (e *RedisEngine) publishLeave(chID ChannelID, message *JoinLeaveMessage) <-chan error {
+	ch := make(chan error, 1)
+	ch <- e.app.leaveMsg(chID, message)
+	return ch
+}
+
+func (e *RedisEngine) publishControl(chID ChannelID, message *ControlCommand) <-chan error {
+	ch := make(chan error, 1)
+	ch <- e.app.controlMsg(message)
+	return ch
 }
 
 func (e *RedisEngine) subscribe(chID ChannelID) error {

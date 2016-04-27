@@ -33,15 +33,13 @@ type Engine interface {
 	// publishMessage allows to send message into channel. The returned value is channel
 	// in which we will send error as soon as engine finishes publish operation. Also
 	// the task of this method is to maintain history for channels if enabled.
-	publishMessage(chID ChannelID, message Message, opts *ChannelOptions) <-chan error
+	publishMessage(chID ChannelID, message *Message, opts *ChannelOptions) <-chan error
 	// publishJoin allows to send join message into channel.
-	publishJoin(chID ChannelID, message JoinLeaveBody) <-chan error
+	publishJoin(chID ChannelID, message *JoinLeaveMessage) <-chan error
 	// publishLeave allows to send leave message into channel.
-	publishLeave(chID ChannelID, message JoinLeaveBody) <-chan error
-	// publishAdmin allows to send admin message to all connected admins.
-	publishAdmin(chID ChannelID, message AdminCommand) <-chan error
+	publishLeave(chID ChannelID, message *JoinLeaveMessage) <-chan error
 	// publishControl allows to send control message to all connected nodes.
-	publishControl(chID ChannelID, message ControlCommand) <-chan error
+	publishControl(chID ChannelID, message *ControlCommand) <-chan error
 
 	// subscribe on channel.
 	subscribe(chID ChannelID) error

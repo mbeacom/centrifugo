@@ -37,7 +37,7 @@ func (e *MemoryEngine) run() error {
 	return nil
 }
 
-func (e *MemoryEngine) publish(chID ChannelID, message Message, opts *publishOpts) <-chan error {
+func (e *MemoryEngine) publishMessage(chID ChannelID, message *Message, opts *ChannelOptions) <-chan error {
 	hasCurrentSubscribers := e.app.clients.hasSubscribers(chID)
 
 	if opts != nil && opts.HistorySize > 0 && opts.HistoryLifetime > 0 {
@@ -46,14 +46,35 @@ func (e *MemoryEngine) publish(chID ChannelID, message Message, opts *publishOpt
 			Lifetime:     opts.HistoryLifetime,
 			DropInactive: (opts.HistoryDropInactive && !hasCurrentSubscribers),
 		}
-		err := e.historyHub.add(chID, opts.Message, histOpts)
+		err := e.historyHub.add(chID, *message, histOpts)
 		if err != nil {
 			logger.ERROR.Println(err)
 		}
 	}
 
 	ch := make(chan error, 1)
-	ch <- e.app.handleMsg(chID, message)
+	ch <- e.app.clientMsg(chID, message, opts)
+	return ch
+}
+
+// publishJoin allows to send join message into channel.
+func (e *MemoryEngine) publishJoin(chID ChannelID, message *JoinLeaveMessage) <-chan error {
+	ch := make(chan error, 1)
+	ch <- e.app.joinMsg(chID, message)
+	return ch
+}
+
+// publishLeave allows to send leave message into channel.
+func (e *MemoryEngine) publishLeave(chID ChannelID, message *JoinLeaveMessage) <-chan error {
+	ch := make(chan error, 1)
+	ch <- e.app.leaveMsg(chID, message)
+	return ch
+}
+
+// publishControl allows to send control message to all connected nodes.
+func (e *MemoryEngine) publishControl(chID ChannelID, message *ControlCommand) <-chan error {
+	ch := make(chan error, 1)
+	ch <- e.app.controlMsg(message)
 	return ch
 }
 
