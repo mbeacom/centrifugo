@@ -244,12 +244,12 @@ func (app *Application) node() NodeInfo {
 	return info
 }
 
-type TypePrefix byte
+type MessageTypePrefix byte
 
 const (
-	ClientMessagePrefix TypePrefix = 'M'
-	JoinMessagePrefix   TypePrefix = 'J'
-	LeaveMessagePrefix  TypePrefix = 'L'
+	ClientMessagePrefix MessageTypePrefix = 'M'
+	JoinMessagePrefix   MessageTypePrefix = 'J'
+	LeaveMessagePrefix  MessageTypePrefix = 'L'
 )
 
 // handleMsg called when new message of any type received by this node.
@@ -260,18 +260,21 @@ func (app *Application) handleMessageFromEngine(chID ChannelID, data []byte) err
 		message, _ := app.decodeEngineControlMessage(data)
 		return app.controlMsg(message)
 	default:
-		// TODO: move this and type constants to Redis Engine.
 		if len(data) == 0 {
 			// Got empty message, nothing to do.
 			return nil
 		}
-		messageType := TypePrefix(data[0])
+		messageType := MessageTypePrefix(data[0])
 		messageBytes := data[1:]
+		chOpts, err := app.channelOpts(app.channelFromChannelID(chID))
+		if err != nil {
+			return err
+		}
 		switch messageType {
 		case ClientMessagePrefix:
 			// message published into channel.
 			message, _ := app.decodeEngineClientMessage(messageBytes)
-			return app.clientMsg(chID, message, nil)
+			return app.clientMsg(chID, message, &chOpts)
 		case JoinMessagePrefix:
 			// join message.
 			joinMessage, _ := app.decodeEngineJoinMessage(messageBytes)
@@ -288,35 +291,50 @@ func (app *Application) handleMessageFromEngine(chID ChannelID, data []byte) err
 }
 
 func (app *Application) decodeEngineControlMessage(data []byte) (*ControlCommand, error) {
-	return &ControlCommand{}, nil
+	var cmd ControlCommand
+	err := json.Unmarshal(data, &cmd)
+	if err != nil {
+		return nil, err
+	}
+	return &cmd, nil
 }
 
 func (app *Application) decodeEngineClientMessage(data []byte) (*Message, error) {
-	return &Message{}, nil
+	var msg Message
+	err := json.Unmarshal(data, &msg)
+	if err != nil {
+		return nil, err
+	}
+	return &msg, nil
 }
 
 func (app *Application) decodeEngineJoinMessage(data []byte) (*JoinLeaveMessage, error) {
-	return &JoinLeaveMessage{}, nil
+	var msg JoinLeaveMessage
+	err := json.Unmarshal(data, &msg)
+	if err != nil {
+		return nil, err
+	}
+	return &msg, nil
 }
 
 func (app *Application) decodeEngineLeaveMessage(data []byte) (*JoinLeaveMessage, error) {
-	return &JoinLeaveMessage{}, nil
+	return app.decodeEngineJoinMessage(data)
 }
 
 func (app *Application) encodeEngineControlMessage(msg *ControlCommand) ([]byte, error) {
-	return nil, nil
+	return json.Marshal(msg)
 }
 
 func (app *Application) encodeEngineClientMessage(msg *Message) ([]byte, error) {
-	return nil, nil
+	return json.Marshal(msg)
 }
 
 func (app *Application) encodeEngineJoinMessage(msg *JoinLeaveMessage) ([]byte, error) {
-	return nil, nil
+	return json.Marshal(msg)
 }
 
 func (app *Application) encodeEngineLeaveMessage(msg *JoinLeaveMessage) ([]byte, error) {
-	return nil, nil
+	return json.Marshal(msg)
 }
 
 // controlMsg handles messages from control channel - control
@@ -403,10 +421,7 @@ func (app *Application) pubControl(method string, params []byte) error {
 		Method: method,
 		Params: &raw,
 	}
-	app.RLock()
-	controlChannel := app.config.ControlChannel
-	app.RUnlock()
-	return <-app.engine.publishControl(controlChannel, &message)
+	return <-app.engine.publishControl(&message)
 }
 
 // Publish sends a message to all clients subscribed on channel with provided data, client and ClientInfo.
@@ -615,6 +630,11 @@ func (app *Application) channelIDPrefix() string {
 // channelID returns internal name of channel.
 func (app *Application) channelID(ch Channel) ChannelID {
 	return ChannelID(app.channelIDPrefix() + string(ch))
+}
+
+// channelID returns internal name of channel.
+func (app *Application) channelFromChannelID(chID ChannelID) Channel {
+	return Channel(strings.TrimPrefix(string(chID), app.channelIDPrefix()))
 }
 
 // addConn registers authenticated connection in clientConnectionHub

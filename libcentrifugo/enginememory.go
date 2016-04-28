@@ -72,7 +72,7 @@ func (e *MemoryEngine) publishLeave(chID ChannelID, message *JoinLeaveMessage) <
 }
 
 // publishControl allows to send control message to all connected nodes.
-func (e *MemoryEngine) publishControl(chID ChannelID, message *ControlCommand) <-chan error {
+func (e *MemoryEngine) publishControl(message *ControlCommand) <-chan error {
 	ch := make(chan error, 1)
 	ch <- e.app.controlMsg(message)
 	return ch

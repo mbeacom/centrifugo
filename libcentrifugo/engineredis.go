@@ -282,21 +282,20 @@ func yesno(condition bool) string {
 // KEYS[1] - history list key
 // ARGV[1] - channel to publish message to
 // ARGV[2] - message payload
-// ARGV[3] - history message payload
-// ARGV[4] - history size
-// ARGV[5] - history lifetime
-// ARGV[6] - history drop inactive flag - "0" or "1"
+// ARGV[3] - history size
+// ARGV[4] - history lifetime
+// ARGV[5] - history drop inactive flag - "0" or "1"
 var pubScriptSource = `
 local n = redis.call("publish", ARGV[1], ARGV[2])
 local m = 0
-if ARGV[6] == "1" and n == 0 then
-  m = redis.call("lpushx", KEYS[1], ARGV[3])
+if ARGV[5] == "1" and n == 0 then
+  m = redis.call("lpushx", KEYS[1], ARGV[2])
 else
-  m = redis.call("lpush", KEYS[1], ARGV[3])
+  m = redis.call("lpush", KEYS[1], ARGV[2])
 end
 if m > 0 then
-  redis.call("ltrim", KEYS[1], 0, ARGV[4])
-  redis.call("expire", KEYS[1], ARGV[5])
+  redis.call("ltrim", KEYS[1], 0, ARGV[3])
+  redis.call("expire", KEYS[1], ARGV[4])
 end
 return n
 	`
@@ -623,12 +622,11 @@ func (e *RedisEngine) runPubSub() {
 }
 
 type pubRequest struct {
-	channel     ChannelID
-	message     []byte
-	messageJSON []byte
-	historyKey  string
-	opts        *ChannelOptions
-	err         *chan error
+	channel    ChannelID
+	message    []byte
+	historyKey string
+	opts       *ChannelOptions
+	err        *chan error
 }
 
 func (pr *pubRequest) done(err error) {
@@ -674,7 +672,7 @@ func (e *RedisEngine) runPublishPipeline() {
 
 		for i := range prs {
 			if prs[i].opts != nil && prs[i].opts.HistorySize > 0 && prs[i].opts.HistoryLifetime > 0 {
-				e.pubScript.SendHash(conn, prs[i].historyKey, prs[i].channel, prs[i].message, prs[i].messageJSON, prs[i].opts.HistorySize, prs[i].opts.HistoryLifetime, prs[i].opts.HistoryDropInactive)
+				e.pubScript.SendHash(conn, prs[i].historyKey, prs[i].channel, prs[i].message, prs[i].opts.HistorySize, prs[i].opts.HistoryLifetime, prs[i].opts.HistoryDropInactive)
 			} else {
 				conn.Send("PUBLISH", prs[i].channel, prs[i].message)
 			}
@@ -723,12 +721,11 @@ func (e *RedisEngine) publishMessage(chID ChannelID, message *Message, opts *Cha
 
 	if opts != nil && opts.HistorySize > 0 && opts.HistoryLifetime > 0 {
 		pr := &pubRequest{
-			channel:     chID,
-			message:     messageJSON, // TODO: fix repeatitions!!!
-			historyKey:  e.getHistoryKey(chID),
-			messageJSON: messageJSON,
-			opts:        opts,
-			err:         &eChan,
+			channel:    chID,
+			message:    messageJSON,
+			historyKey: e.getHistoryKey(chID),
+			opts:       opts,
+			err:        &eChan,
 		}
 		e.pubCh <- pr
 		return eChan
@@ -755,7 +752,7 @@ func (e *RedisEngine) publishLeave(chID ChannelID, message *JoinLeaveMessage) <-
 	return ch
 }
 
-func (e *RedisEngine) publishControl(chID ChannelID, message *ControlCommand) <-chan error {
+func (e *RedisEngine) publishControl(message *ControlCommand) <-chan error {
 	ch := make(chan error, 1)
 	ch <- e.app.controlMsg(message)
 	return ch

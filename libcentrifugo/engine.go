@@ -6,20 +6,6 @@ type historyOpts struct {
 	Limit int
 }
 
-type publishOpts struct {
-	// TODO: write comment
-	Watch bool
-	// HistorySize is maximum size of channel history that engine must maintain.
-	HistorySize int
-	// HistoryLifetime is maximum amount of seconds history messages should exist
-	// before expiring and most probably being deleted (to prevent memory leaks).
-	HistoryLifetime int
-	// HistoryDropInactive hints to the engine that there were no actual subscribers
-	// connected when message was published, and that it can skip saving if there is
-	// no unexpired history for the channel (i.e. no subscribers active within history_lifetime)
-	HistoryDropInactive bool
-}
-
 // Engine is an interface with all methods that can be used by client or
 // application to publish message, handle subscriptions, save or retrieve
 // presence and history data.
@@ -39,7 +25,7 @@ type Engine interface {
 	// publishLeave allows to send leave message into channel.
 	publishLeave(chID ChannelID, message *JoinLeaveMessage) <-chan error
 	// publishControl allows to send control message to all connected nodes.
-	publishControl(chID ChannelID, message *ControlCommand) <-chan error
+	publishControl(message *ControlCommand) <-chan error
 
 	// subscribe on channel.
 	subscribe(chID ChannelID) error
