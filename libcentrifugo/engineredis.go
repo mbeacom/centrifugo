@@ -417,9 +417,7 @@ func (e *RedisEngine) runAPI() {
 	logger.DEBUG.Println("Enter runAPI")
 	defer logger.DEBUG.Println("Return from runAPI")
 
-	e.app.RLock()
-	apiKey := e.app.config.ChannelPrefix + "." + "api"
-	e.app.RUnlock()
+	apiKey := e.getAPIQueueKey()
 
 	done := make(chan struct{})
 	defer close(done)
@@ -429,7 +427,7 @@ func (e *RedisEngine) runAPI() {
 	workQueues[apiKey] = make(chan []byte, 256)
 
 	for i := 0; i < e.numApiShards; i++ {
-		queueKey := fmt.Sprintf("%s.%d", apiKey, i)
+		queueKey := e.getAPIShardQueueKey(i)
 		popParams = append(popParams, queueKey)
 		workQueues[queueKey] = make(chan []byte, 256)
 	}
@@ -527,9 +525,7 @@ func (e *RedisEngine) runPubSub() {
 	logger.DEBUG.Println("Enter runPubSub")
 	defer logger.DEBUG.Println("Return from runPubSub")
 
-	e.app.RLock()
-	controlChannel := e.app.config.ControlChannel
-	e.app.RUnlock()
+	controlChannel := e.getControlChannelID()
 
 	done := make(chan struct{})
 	defer close(done)
@@ -792,10 +788,8 @@ func (e *RedisEngine) publishLeave(ch Channel, message *JoinLeaveMessage) <-chan
 }
 
 func (e *RedisEngine) publishControl(message *ControlCommand) <-chan error {
-	e.app.Lock()
 	// TODO: control channel must be defined in Redis engine
-	chID := e.app.config.ControlChannel
-	e.app.Unlock()
+	chID := e.getControlChannelID()
 
 	eChan := make(chan error, 1)
 
@@ -828,6 +822,23 @@ func (e *RedisEngine) unsubscribe(ch Channel) error {
 	r := newSubRequest(chID, true)
 	e.unSubCh <- r
 	return r.result()
+}
+
+func (e *RedisEngine) getAPIQueueKey() string {
+	e.app.RLock()
+	defer e.app.RUnlock()
+	return e.app.config.ChannelPrefix + ".api"
+}
+
+func (e *RedisEngine) getAPIShardQueueKey(shardNum int) string {
+	apiKey := e.getAPIQueueKey()
+	return fmt.Sprintf("%s.%d", apiKey, shardNum)
+}
+
+func (e *RedisEngine) getControlChannelID() ChannelID {
+	e.app.RLock()
+	defer e.app.RUnlock()
+	return ChannelID(e.app.config.ChannelPrefix + ".control")
 }
 
 func (e *RedisEngine) getHashKey(chID ChannelID) string {
@@ -985,9 +996,7 @@ func (e *RedisEngine) channels() ([]Channel, error) {
 		return nil, err
 	}
 
-	e.app.RLock()
-	controlChID := e.app.config.ControlChannel
-	e.app.RUnlock()
+	controlChID := e.getControlChannelID()
 
 	channels := make([]Channel, 0, len(values))
 	for i := 0; i < len(values); i++ {
