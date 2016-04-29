@@ -49,6 +49,9 @@ type Application struct {
 	// shutdown is a flag which is only true when application is going to shut down.
 	shutdown bool
 
+	// shutdownCh is a channel which is closed when shutdown happens.
+	shutdownCh chan struct{}
+
 	// metrics holds various counters and timers different parts of Centrifugo update.
 	metrics *metricsRegistry
 }
@@ -78,13 +81,14 @@ type NodeInfo struct {
 // config, structure and engine must be set via corresponding methods.
 func NewApplication(config *Config) (*Application, error) {
 	app := &Application{
-		uid:     uuid.NewV4().String(),
-		config:  config,
-		clients: newClientHub(),
-		admins:  newAdminHub(),
-		nodes:   make(map[string]NodeInfo),
-		started: time.Now().Unix(),
-		metrics: &metricsRegistry{},
+		uid:        uuid.NewV4().String(),
+		config:     config,
+		clients:    newClientHub(),
+		admins:     newAdminHub(),
+		nodes:      make(map[string]NodeInfo),
+		started:    time.Now().Unix(),
+		metrics:    &metricsRegistry{},
+		shutdownCh: make(chan struct{}),
 	}
 	return app, nil
 }
@@ -106,7 +110,12 @@ func (app *Application) Run() error {
 // all clients from all channels and disconnects them).
 func (app *Application) Shutdown() {
 	app.Lock()
+	if app.shutdown {
+		app.Unlock()
+		return
+	}
 	app.shutdown = true
+	close(app.shutdownCh)
 	app.Unlock()
 	app.clients.shutdown()
 }
@@ -431,20 +440,24 @@ func (app *Application) pubClient(ch Channel, chOpts ChannelOptions, data []byte
 	return app.engine.publishMessage(ch, &message, &chOpts)
 }
 
-// pubJoinLeave allows to publish join message into channel when someone subscribes on it
+// pubJoin allows to publish join message into channel when someone subscribes on it
 // or leave message when someone unsubscribes from channel.
-func (app *Application) pubJoinLeave(ch Channel, method string, info ClientInfo) error {
+func (app *Application) pubJoin(ch Channel, info ClientInfo) error {
 	message := JoinLeaveMessage{
 		Channel: ch,
 		Data:    info,
 	}
-	if method == "join" {
-		return <-app.engine.publishJoin(ch, &message)
-	} else if method == "leave" {
-		return <-app.engine.publishLeave(ch, &message)
-	} else {
-		panic("Only join and leave methods supported in pubJoinLeave")
+	return <-app.engine.publishJoin(ch, &message)
+}
+
+// pubLeave allows to publish join message into channel when someone subscribes on it
+// or leave message when someone unsubscribes from channel.
+func (app *Application) pubLeave(ch Channel, info ClientInfo) error {
+	message := JoinLeaveMessage{
+		Channel: ch,
+		Data:    info,
 	}
+	return <-app.engine.publishLeave(ch, &message)
 }
 
 func (app *Application) joinMsg(ch Channel, message *JoinLeaveMessage) error {
@@ -479,7 +492,6 @@ func (app *Application) leaveMsg(ch Channel, message *JoinLeaveMessage) error {
 // contains information about current node.
 func (app *Application) pubPing() error {
 	app.RLock()
-	defer app.RUnlock()
 	info := NodeInfo{
 		UID:        app.uid,
 		Name:       app.config.Name,
@@ -492,6 +504,7 @@ func (app *Application) pubPing() error {
 		Gomaxprocs: runtime.GOMAXPROCS(-1),
 		Metrics:    *app.metrics.GetSnapshotMetrics(),
 	}
+	app.RUnlock()
 	cmd := &pingControlCommand{Info: info}
 
 	err := app.pingCmd(cmd)

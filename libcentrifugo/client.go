@@ -826,7 +826,7 @@ func (c *client) subscribeCmd(cmd *SubscribeClientCommand) (*clientResponse, err
 
 	if chOpts.JoinLeave {
 		go func() {
-			err = c.app.pubJoinLeave(channel, "join", info)
+			err = c.app.pubJoin(channel, info)
 			if err != nil {
 				logger.ERROR.Println(err)
 			}
@@ -877,7 +877,7 @@ func (c *client) unsubscribeCmd(cmd *UnsubscribeClientCommand) (*clientResponse,
 		}
 
 		if chOpts.JoinLeave {
-			err = c.app.pubJoinLeave(channel, "leave", info)
+			err = c.app.pubLeave(channel, info)
 			if err != nil {
 				logger.ERROR.Println(err)
 			}
