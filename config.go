@@ -38,7 +38,6 @@ func newConfig() *libcentrifugo.Config {
 	cfg.AdminSecret = adminSecret
 
 	cfg.ChannelPrefix = viper.GetString("channel_prefix")
-	cfg.ControlChannel = libcentrifugo.ChannelID(cfg.ChannelPrefix + "." + "control")
 	cfg.MaxChannelLength = viper.GetInt("max_channel_length")
 	cfg.PingInterval = time.Duration(viper.GetInt("ping_interval")) * time.Second
 	cfg.NodePingInterval = time.Duration(viper.GetInt("node_ping_interval")) * time.Second

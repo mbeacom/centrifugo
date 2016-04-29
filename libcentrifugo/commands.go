@@ -7,8 +7,6 @@ import (
 type (
 	// Channel is a string channel name.
 	Channel string
-	// ChannelID is unique channel identificator in Redis.
-	ChannelID string
 	// UserID is web application user ID as string.
 	UserID string
 	// ConnID is a unique connection ID.

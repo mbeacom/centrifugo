@@ -33,6 +33,11 @@ const (
 	RedisPublishBatchLimit = 2048
 )
 
+type (
+	// ChannelID is unique channel identificator in Redis.
+	ChannelID string
+)
+
 const (
 	RedisAPIKeySuffix         = ".api"
 	RedisControlChannelSuffix = ".control"
