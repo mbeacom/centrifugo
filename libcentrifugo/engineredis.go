@@ -41,6 +41,7 @@ type (
 const (
 	RedisAPIKeySuffix         = ".api"
 	RedisControlChannelSuffix = ".control"
+	RedisAdminChannelSuffix   = ".admin"
 	RedisMessageChannelPrefix = ".message."
 	RedisJoinChannelPrefix    = ".join."
 	RedisLeaveChannelPrefix   = ".leave."
@@ -553,6 +554,7 @@ func (e *RedisEngine) runPubSub() {
 	defer logger.DEBUG.Println("Return from runPubSub")
 
 	controlChannel := e.controlChannelID()
+	adminChannel := e.adminChannelID()
 
 	done := make(chan struct{})
 	defer close(done)
@@ -627,6 +629,8 @@ func (e *RedisEngine) runPubSub() {
 	// This saves a lot of allocating of pointless chans...
 	r := newSubRequest(controlChannel, false)
 	e.subCh <- r
+	r = newSubRequest(adminChannel, false)
+	e.subCh <- r
 	for _, ch := range e.app.clients.channels() {
 		e.subCh <- newSubRequest(e.messageChannelID(ch), false)
 		e.subCh <- newSubRequest(e.joinChannelID(ch), false)
@@ -644,6 +648,9 @@ func (e *RedisEngine) runPubSub() {
 			case controlChannel:
 				message, _ := e.app.decodeEngineControlMessage(n.Data)
 				e.app.controlMsg(message)
+			case adminChannel:
+				message, _ := e.app.decodeEngineAdminMessage(n.Data)
+				e.app.adminMsg(message)
 			default:
 				ch, msgType := e.channelFromChannelID(chID)
 				switch msgType {
@@ -898,6 +905,26 @@ func (e *RedisEngine) publishControl(message *ControlCommand) <-chan error {
 	return eChan
 }
 
+func (e *RedisEngine) publishAdmin(message *AdminCommand) <-chan error {
+	eChan := make(chan error, 1)
+
+	byteMessage, err := e.app.encodeEngineAdminMessage(message)
+	if err != nil {
+		eChan <- err
+		return eChan
+	}
+
+	chID := e.adminChannelID()
+
+	pr := &pubRequest{
+		channel: chID,
+		message: byteMessage,
+		err:     &eChan,
+	}
+	e.pubCh <- pr
+	return eChan
+}
+
 func (e *RedisEngine) subscribe(ch Channel) error {
 	logger.DEBUG.Println("subscribe on channel", ch)
 	r := newSubRequest(e.joinChannelID(ch), false)
@@ -935,6 +962,12 @@ func (e *RedisEngine) controlChannelID() ChannelID {
 	e.app.RLock()
 	defer e.app.RUnlock()
 	return ChannelID(e.app.config.ChannelPrefix + RedisControlChannelSuffix)
+}
+
+func (e *RedisEngine) adminChannelID() ChannelID {
+	e.app.RLock()
+	defer e.app.RUnlock()
+	return ChannelID(e.app.config.ChannelPrefix + RedisAdminChannelSuffix)
 }
 
 func (e *RedisEngine) getHashKey(chID ChannelID) string {

@@ -57,24 +57,27 @@ func (e *MemoryEngine) publishMessage(ch Channel, message *Message, opts *Channe
 	return eChan
 }
 
-// publishJoin allows to send join message into channel.
 func (e *MemoryEngine) publishJoin(ch Channel, message *JoinLeaveMessage) <-chan error {
 	eChan := make(chan error, 1)
 	eChan <- e.app.joinMsg(ch, message)
 	return eChan
 }
 
-// publishLeave allows to send leave message into channel.
 func (e *MemoryEngine) publishLeave(ch Channel, message *JoinLeaveMessage) <-chan error {
 	eChan := make(chan error, 1)
 	eChan <- e.app.leaveMsg(ch, message)
 	return eChan
 }
 
-// publishControl allows to send control message to all connected nodes.
 func (e *MemoryEngine) publishControl(message *ControlCommand) <-chan error {
 	eChan := make(chan error, 1)
 	eChan <- e.app.controlMsg(message)
+	return eChan
+}
+
+func (e *MemoryEngine) publishAdmin(message *AdminCommand) <-chan error {
+	eChan := make(chan error, 1)
+	eChan <- e.app.adminMsg(message)
 	return eChan
 }
 

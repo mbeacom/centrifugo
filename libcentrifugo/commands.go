@@ -28,9 +28,9 @@ type APICommand struct {
 }
 
 type AdminCommand struct {
-	UID    string          `json:"uid"`
-	Method string          `json:"method"`
-	Params json.RawMessage `json:"params"`
+	UID    string           `json:"uid"`
+	Method string           `json:"method"`
+	Params *json.RawMessage `json:"params"`
 }
 
 type ControlCommand struct {

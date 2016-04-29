@@ -239,6 +239,15 @@ func (app *Application) decodeEngineControlMessage(data []byte) (*ControlCommand
 	return &cmd, nil
 }
 
+func (app *Application) decodeEngineAdminMessage(data []byte) (*AdminCommand, error) {
+	var cmd AdminCommand
+	err := json.Unmarshal(data, &cmd)
+	if err != nil {
+		return nil, err
+	}
+	return &cmd, nil
+}
+
 func (app *Application) decodeEngineClientMessage(data []byte) (*Message, error) {
 	var msg Message
 	err := json.Unmarshal(data, &msg)
@@ -262,6 +271,10 @@ func (app *Application) decodeEngineLeaveMessage(data []byte) (*JoinLeaveMessage
 }
 
 func (app *Application) encodeEngineControlMessage(msg *ControlCommand) ([]byte, error) {
+	return json.Marshal(msg)
+}
+
+func (app *Application) encodeEngineAdminMessage(msg *AdminCommand) ([]byte, error) {
 	return json.Marshal(msg)
 }
 
@@ -321,47 +334,46 @@ func (app *Application) controlMsg(cmd *ControlCommand) error {
 	}
 }
 
-// clientMsg handles messages published by web application or client into channel.
-// The goal of this method to deliver this message to all clients on this node subscribed
-// on channel and to all connected admins if any and watch option enabled.
-func (app *Application) clientMsg(ch Channel, message *Message, chOpts *ChannelOptions) error {
-	hasCurrentSubscribers := app.clients.hasSubscribers(ch)
-
+func (app *Application) adminMsg(message *AdminCommand) error {
 	app.admins.RLock()
 	hasAdmins := len(app.admins.connections) > 0
 	app.admins.RUnlock()
-
-	resp := newClientMessage()
-	resp.Body = *message
-
-	if !hasCurrentSubscribers && (!chOpts.Watch || !hasAdmins) {
+	if !hasAdmins {
 		return nil
 	}
+
+	resp := newResponse("message")
+	resp.Body = message.Params
 
 	byteMessage, err := json.Marshal(resp)
 	if err != nil {
 		return err
 	}
 
-	if chOpts.Watch {
-		// No error handling because we can not block to wait
-		// for publish error here.
-		app.admins.broadcast(byteMessage)
+	return app.admins.broadcast(byteMessage)
+}
+
+// clientMsg handles messages published by web application or client into channel.
+// The goal of this method to deliver this message to all clients on this node subscribed
+// on channel and to all connected admins if any and watch option enabled.
+func (app *Application) clientMsg(ch Channel, message *Message, chOpts *ChannelOptions) error {
+
+	// TODO: move to memory engine.
+	hasCurrentSubscribers := app.clients.hasSubscribers(ch)
+
+	if !hasCurrentSubscribers {
+		return nil
+	}
+
+	resp := newClientMessage()
+	resp.Body = *message
+
+	byteMessage, err := json.Marshal(resp)
+	if err != nil {
+		return err
 	}
 
 	return app.clients.broadcast(ch, byteMessage)
-}
-
-// pubControl publishes message into control channel so all running
-// nodes will receive and handle it.
-func (app *Application) pubControl(method string, params []byte) error {
-	raw := json.RawMessage(params)
-	message := ControlCommand{
-		UID:    app.uid,
-		Method: method,
-		Params: &raw,
-	}
-	return <-app.engine.publishControl(&message)
 }
 
 // Publish sends a message to all clients subscribed on channel with provided data, client and ClientInfo.
@@ -432,11 +444,41 @@ func (app *Application) publish(ch Channel, data []byte, client ConnID, info *Cl
 	return <-app.publishAsync(ch, data, client, info, fromClient)
 }
 
+// pubControl publishes message into control channel so all running
+// nodes will receive and handle it.
+func (app *Application) pubControl(method string, params []byte) error {
+	raw := json.RawMessage(params)
+	message := ControlCommand{
+		UID:    app.uid,
+		Method: method,
+		Params: &raw,
+	}
+	return <-app.engine.publishControl(&message)
+}
+
+// pubAdmin publishes message to admins.
+func (app *Application) pubAdmin(method string, params []byte) <-chan error {
+	raw := json.RawMessage(params)
+	message := AdminCommand{
+		Method: method,
+		Params: &raw,
+	}
+	return app.engine.publishAdmin(&message)
+}
+
 // pubClient publishes message into channel so all running nodes
 // will receive it and will send to all clients on node subscribed on channel.
 func (app *Application) pubClient(ch Channel, chOpts ChannelOptions, data []byte, client ConnID, info *ClientInfo) <-chan error {
 	message := newMessage(ch, data, client, info)
 	app.metrics.NumMsgPublished.Inc()
+	if chOpts.Watch {
+		byteMessage, err := json.Marshal(message)
+		if err != nil {
+			logger.ERROR.Println(err)
+		} else {
+			app.pubAdmin("message", byteMessage)
+		}
+	}
 	return app.engine.publishMessage(ch, &message, &chOpts)
 }
 
