@@ -51,9 +51,6 @@ type Application struct {
 
 	// metrics holds various counters and timers different parts of Centrifugo update.
 	metrics *metricsRegistry
-
-	// chIDPrefix added before every message channel ID.
-	chIDPrefix string
 }
 
 // Stats contains state and metrics information from running Centrifugo nodes.
@@ -77,22 +74,17 @@ type NodeInfo struct {
 	updated int64
 }
 
-const (
-	channelIDPrefix = ".channel."
-)
-
 // NewApplication returns new Application instance, the only required argument is
 // config, structure and engine must be set via corresponding methods.
 func NewApplication(config *Config) (*Application, error) {
 	app := &Application{
-		uid:        uuid.NewV4().String(),
-		config:     config,
-		clients:    newClientHub(),
-		admins:     newAdminHub(),
-		nodes:      make(map[string]NodeInfo),
-		started:    time.Now().Unix(),
-		metrics:    &metricsRegistry{},
-		chIDPrefix: config.ChannelPrefix + channelIDPrefix,
+		uid:     uuid.NewV4().String(),
+		config:  config,
+		clients: newClientHub(),
+		admins:  newAdminHub(),
+		nodes:   make(map[string]NodeInfo),
+		started: time.Now().Unix(),
+		metrics: &metricsRegistry{},
 	}
 	return app, nil
 }
@@ -173,7 +165,6 @@ func (app *Application) SetConfig(c *Config) {
 	app.Lock()
 	defer app.Unlock()
 	app.config = c
-	app.chIDPrefix = c.ChannelPrefix + channelIDPrefix
 	if app.config.Insecure {
 		logger.WARN.Println("libcentrifugo: application in INSECURE MODE")
 	}
@@ -557,22 +548,6 @@ func (app *Application) pingCmd(cmd *pingControlCommand) error {
 	app.nodes[info.UID] = info
 	app.nodesMu.Unlock()
 	return nil
-}
-
-func (app *Application) channelIDPrefix() string {
-	app.RLock()
-	defer app.RUnlock()
-	return app.chIDPrefix
-}
-
-// channelID returns internal name of channel.
-func (app *Application) channelID(ch Channel) ChannelID {
-	return ChannelID(app.channelIDPrefix() + string(ch))
-}
-
-// channelID returns internal name of channel.
-func (app *Application) channelFromChannelID(chID ChannelID) Channel {
-	return Channel(strings.TrimPrefix(string(chID), app.channelIDPrefix()))
 }
 
 // addConn registers authenticated connection in clientConnectionHub
