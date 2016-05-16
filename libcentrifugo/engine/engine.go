@@ -1,4 +1,4 @@
-package libcentrifugo
+package engine
 
 import (
 	"encoding/json"
@@ -31,9 +31,9 @@ type Engine interface {
 	// publishLeave allows to send leave message into channel.
 	publishLeave(Channel, *LeaveMessage) <-chan error
 	// publishControl allows to send control message to all connected nodes.
-	publishControl(*controlCommand) <-chan error
+	publishControl(*ControlMessage) <-chan error
 	// publishAdmin allows to send admin message to all connected admins.
-	publishAdmin(*adminCommand) <-chan error
+	publishAdmin(*AdminMessage) <-chan error
 
 	// subscribe on channel.
 	subscribe(Channel) error

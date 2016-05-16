@@ -1,4 +1,4 @@
-package libcentrifugo
+package engine
 
 type testEngine struct{}
 
